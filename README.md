@@ -1,7 +1,7 @@
 # microbiota-miRNA-correlations
 This repository includes code utilized to correlate microbiota and miRNA data. Correlations were all generated in Python. 
 
-This microbiota-miRNA correlation pipeline was utilized for the following paper: 
+This microbiota-miRNA correlation pipeline was originally created and utilized for the following paper: 
 
 ## Wu D, Thompson LU, Comelli EM. 2024. "Cecal microbiota and mammary gland microRNA signatures are related and modifiable by dietary flaxseed with implications for breast cancer risk." Microbiology Spectrum, 12:e02290-23.https://doi.org/10.1128/spectrum.02290-23 
 
