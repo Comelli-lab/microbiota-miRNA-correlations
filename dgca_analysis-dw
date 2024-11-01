@@ -1,0 +1,1664 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "toc": true
+   },
+   "source": [
+    "<h1>Table of Contents<span class=\"tocSkip\"></span></h1>\n",
+    "<div class=\"toc\"><ul class=\"toc-item\"><li><span><a href=\"#Differential-correlation-(DGCA-in-R)-secondary-analyses\" data-toc-modified-id=\"Differential-correlation-(DGCA-in-R)-secondary-analyses-1\"><span class=\"toc-item-num\">1&nbsp;&nbsp;</span>Differential correlation (DGCA in R) secondary analyses</a></span><ul class=\"toc-item\"><li><span><a href=\"#Get-gene-targets\" data-toc-modified-id=\"Get-gene-targets-1.1\"><span class=\"toc-item-num\">1.1&nbsp;&nbsp;</span>Get gene targets</a></span></li><li><span><a href=\"#Get-data-metrics\" data-toc-modified-id=\"Get-data-metrics-1.2\"><span class=\"toc-item-num\">1.2&nbsp;&nbsp;</span>Get data metrics</a></span><ul class=\"toc-item\"><li><span><a href=\"#MiR-Gene-target-Pathway-data-summaries-to-use-in-comparison\" data-toc-modified-id=\"MiR-Gene-target-Pathway-data-summaries-to-use-in-comparison-1.2.1\"><span class=\"toc-item-num\">1.2.1&nbsp;&nbsp;</span>MiR-Gene target-Pathway data summaries to use in comparison</a></span></li><li><span><a href=\"#Gene-target-summary-of-comparisons-between-diets\" data-toc-modified-id=\"Gene-target-summary-of-comparisons-between-diets-1.2.2\"><span class=\"toc-item-num\">1.2.2&nbsp;&nbsp;</span>Gene target summary of comparisons between diets</a></span></li><li><span><a href=\"#DGCA-summary-of-comparisons-between-diet-correlation-comparisons\" data-toc-modified-id=\"DGCA-summary-of-comparisons-between-diet-correlation-comparisons-1.2.3\"><span class=\"toc-item-num\">1.2.3&nbsp;&nbsp;</span>DGCA summary of comparisons between diet correlation comparisons</a></span></li></ul></li><li><span><a href=\"#Check-which-genes-are-in-common-between-comparisons-for-pathways-that-are-relevant\" data-toc-modified-id=\"Check-which-genes-are-in-common-between-comparisons-for-pathways-that-are-relevant-1.3\"><span class=\"toc-item-num\">1.3&nbsp;&nbsp;</span>Check which genes are in common between comparisons for pathways that are relevant</a></span></li><li><span><a href=\"#Check-for-0-p-value\" data-toc-modified-id=\"Check-for-0-p-value-1.4\"><span class=\"toc-item-num\">1.4&nbsp;&nbsp;</span>Check for 0 p-value</a></span></li><li><span><a href=\"#Visualize-differential-correlations\" data-toc-modified-id=\"Visualize-differential-correlations-1.5\"><span class=\"toc-item-num\">1.5&nbsp;&nbsp;</span>Visualize differential correlations</a></span><ul class=\"toc-item\"><li><span><a href=\"#Get-NCBI-Information-for-gene-symbols\" data-toc-modified-id=\"Get-NCBI-Information-for-gene-symbols-1.5.1\"><span class=\"toc-item-num\">1.5.1&nbsp;&nbsp;</span>Get NCBI Information for gene symbols</a></span></li><li><span><a href=\"#Get-pubmed-info-on-each-gene-&amp;-if-it-relates-to-breast-cancer\" data-toc-modified-id=\"Get-pubmed-info-on-each-gene-&amp;-if-it-relates-to-breast-cancer-1.5.2\"><span class=\"toc-item-num\">1.5.2&nbsp;&nbsp;</span>Get pubmed info on each gene &amp; if it relates to breast cancer</a></span></li><li><span><a href=\"#Get-gene-ontology-for-each-class\" data-toc-modified-id=\"Get-gene-ontology-for-each-class-1.5.3\"><span class=\"toc-item-num\">1.5.3&nbsp;&nbsp;</span>Get gene ontology for each class</a></span></li></ul></li><li><span><a href=\"#Visualize-differential-correlation-data\" data-toc-modified-id=\"Visualize-differential-correlation-data-1.6\"><span class=\"toc-item-num\">1.6&nbsp;&nbsp;</span>Visualize differential correlation data</a></span></li></ul></li></ul></div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Differential correlation (DGCA in R) secondary analyses"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Get gene targets"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from dc_gene_target import dcGeneTarget\n",
+    "from summary_table import get_summary_table\n",
+    "import pandas as pd\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# DGCA results for cecum\n",
+    "cecum_path = \"../Results/dgca/dw20220311-1.xlsx\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "46    [miR-106a, miR-17]\n",
+      "50    [miR-106a, miR-17]\n",
+      "Name: Gene2, dtype: object\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Exporting down-to-dereg...\n",
+      "Exporting up-to-downreg...\n",
+      "Exporting de-to-downreg...\n",
+      "Exporting down-to-downreg...\n",
+      "Exporting down-to-upreg...\n",
+      "Exporting de-to-upreg...\n",
+      "Exporting up-to-dereg...\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Load new data, get gene targets for FS-SDG differential correlations\n",
+    "gtFinder.load_data(cecum_path, \n",
+    "                 sheet_name = \"fssdg\", filter_val = 0.05)\n",
+    "fssdg_gt = gtFinder.gene_target(95, export = \"../Results/dw20220613-1.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "9     [miR-106a, miR-17]\n",
+      "63    [miR-106a, miR-17]\n",
+      "Name: Gene2, dtype: object\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Exporting down-to-upreg...\n",
+      "Exporting up-to-downreg...\n",
+      "Exporting down-to-dereg...\n",
+      "Exporting de-to-downreg...\n",
+      "Exporting up-to-dereg...\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Load new data, get gene targets for BD-SDG differential correlations\n",
+    "gtFinder.load_data(cecum_path, \n",
+    "                 sheet_name = \"bdsdg\",\n",
+    "                 filter_val = 0.05)\n",
+    "bdsdg_gt = gtFinder.gene_target(95, export = \"../Results/dw20220713-2.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0      [miR-106a, miR-17]\n",
+      "144    [miR-20a, miR-20b]\n",
+      "Name: Gene2, dtype: object\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "6                [miR-181b, miR-181d]\n",
+      "68             [miR-1937a, miR-1937b]\n",
+      "128    [miR-297a, miR-466f, miR-669b]\n",
+      "Name: Gene2, dtype: object\n",
+      "47    [miR-106a, miR-17]\n",
+      "Name: Gene2, dtype: object\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Series([], Name: Gene2, dtype: object)\n",
+      "Exporting up-to-downreg...\n",
+      "Exporting down-to-upreg...\n",
+      "Exporting down-to-dereg...\n",
+      "Exporting de-to-downreg...\n",
+      "Exporting down-to-downreg...\n",
+      "Exporting de-to-upreg...\n",
+      "Exporting up-to-dereg...\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Load new data, get gene targets for FSO-SDG differential correlations\n",
+    "gtFinder.load_data(cecum_path, \n",
+    "                 sheet_name = \"fsosdg\",\n",
+    "                 filter_val = 0.05)\n",
+    "fsosdg_gt = gtFinder.gene_target(95, export = \"../Results/dw20220713-3.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Get data metrics"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### MiR-Gene target-Pathway data summaries to use in comparison"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "'''\n",
+    "file_map_cecum_noplus = {'bd-fs': '../Results/Gene targets/dw20220316/dw20220316-8.xlsx',\n",
+    "                  'fs-fso': '../Results/Gene targets/dw20220324-1.xlsx',\n",
+    "                  'fs-sdg': '../Results/Gene targets/dw20220316/dw20220316-9.xlsx',\n",
+    "                  'bd-fso': '../Results/Gene targets/dw20220316/dw20220316-11.xlsx',\n",
+    "                  'bd-sdg': '../Results/Gene targets/dw20220316/dw20220316-12.xlsx',\n",
+    "                  'fso-sdg': '../Results/Gene targets/dw20220316/dw20220316-13.xlsx'}\n",
+    "old_file_map_cecum_plus = {'bd-fs': '../Results/dw20220407-1.xlsx',\n",
+    "                  'fs-fso': '../Results/dw20220407-3.xlsx',\n",
+    "                  'fs-sdg': '../Results/dw20220407-2.xlsx',\n",
+    "                  'bd-fso': '../Results/dw20220407-4.xlsx',\n",
+    "                  'bd-sdg': '../Results/dw20220407-5.xlsx',\n",
+    "                  'fso-sdg': '../Results/dw20220407-6.xlsx'}\n",
+    "'''\n",
+    "file_map_cecum_plus = {'bd-fs': '../Results/dw20220408/dw20220408-1.xlsx',\n",
+    "                  'fs-fso': '../Results/dw20220408/dw20220408-3.xlsx',\n",
+    "                  'fs-sdg': '../Results/dw20220713-1.xlsx',\n",
+    "                  'bd-fso': '../Results/dw20220408/dw20220408-4.xlsx',\n",
+    "                  'bd-sdg': '../Results/dw20220713-2.xlsx',\n",
+    "                  'fso-sdg': '../Results/dw20220713-3.xlsx'}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def gtpw_prep(file_dict):\n",
+    "    '''\n",
+    "    Returns all gene targets and pathways found from DGCA comparisons as a dictionary with \n",
+    "        each key being comparison groups, and values are gene targets/pathways and the correlation change direction. \n",
+    "        Meant to be used as input to summary_matrix. Se dw20220316-8.xlsx for an example of what the input file looks like.\n",
+    "        \n",
+    "    Args:\n",
+    "        file_dict::dict\n",
+    "            Dictionary of comparison groups as key, comparison group gene target/pathway filepath.\n",
+    "        \n",
+    "    '''\n",
+    "    cor_map = {'dereg-to-dereg': '0/0', 'down-to-upreg': '-/+',\n",
+    "              'down-to-dereg': '-/0', 'down-to-downreg': '-/-', 'up-to-downreg': '+/-',\n",
+    "              'de-to-upreg': '0/+', 'up-to-dereg': '+/0', \n",
+    "              'de-to-downreg': '0/-', 'up-to-upreg': '+/+', 'NonSig': 'NonSig'}\n",
+    "    gt = {}\n",
+    "    pw = {}\n",
+    "    gtpw_map = {}\n",
+    "    \n",
+    "    # Get overall list of gene targets and pathways\n",
+    "    for diet in file_dict:\n",
+    "        print(diet)\n",
+    "        file = pd.ExcelFile(file_dict[diet])\n",
+    "        gt_pw = pd.read_excel(file, sheet_name=None)\n",
+    "        gt_pw.pop(\"Sheet1\", None)\n",
+    "        gt_pw.pop(\"summary\", None)\n",
+    "        \n",
+    "        diet_gt = pd.DataFrame()\n",
+    "        diet_pw = pd.DataFrame()\n",
+    "        diet_map = pd.DataFrame()\n",
+    "        \n",
+    "        # Get gene targets & pathways for each different correlation direction change\n",
+    "        for direction in gt_pw: \n",
+    "            print(direction)\n",
+    "            if \"path\" not in direction:\n",
+    "                # Make sure its a gene target sheet\n",
+    "                # Concatenate all together into one dataframe with directions as \"Classes\" in a column so I can have all diets as sheets instead\n",
+    "                gt_pw[direction][\"Classes\"] = cor_map[direction]\n",
+    "                diet_gt = pd.concat([diet_gt, gt_pw[direction]])\n",
+    "            else:\n",
+    "                pathway = extract_pathways(gt_pw[direction])\n",
+    "                pathway[\"Classes\"] = direction[6] + \"/\" + direction[8]\n",
+    "                diet_pw = pd.concat([diet_pw, pathway])\n",
+    "                \n",
+    "                temp_map = gene_pathway_map(gt_pw[direction])\n",
+    "                temp_map[\"Classes\"] = direction[6] + \"/\" + direction[8]\n",
+    "                diet_map = pd.concat([diet_map, temp_map])\n",
+    "                \n",
+    "        diet_gt.drop(columns=[x for x in diet_gt.columns if \"Unnamed\" in x], inplace=True)\n",
+    "        gt[diet] = diet_gt\n",
+    "        pw[diet] = diet_pw\n",
+    "        gtpw_map[diet] = diet_map\n",
+    "    \n",
+    "    \n",
+    "    return gt, pw, gtpw_map"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def extract_pathways(pathway_sheet):\n",
+    "    '''\n",
+    "    Removes the top rows of the pathway results from pathDIP. \"Pathway Source\" column needs to be at row 32 or will fail\n",
+    "    '''\n",
+    "    # Gets one pathway and removes first 30 lines \n",
+    "    test = pathway_sheet.drop([i for i in range(0,30)])\n",
+    "    # Set the first row to be the column names\n",
+    "    test.columns=test.iloc[0]\n",
+    "    # Set first column to be index\n",
+    "    test.set_index(\"Pathway Source\", inplace=True)\n",
+    "    # Remove the 30 name from index\n",
+    "    test.columns.name=None\n",
+    "    pathways = [\"ACSN2\", \"BioCarta\", \"EHMN\", \"HumanCyc\", \"INOH\", \"IPAVS\", \"KEGG\", \"MouseCyc\", \"NetPath\", \"OntoCancro\", \"Panther_Pathway\", \"PharmGKB\", \"PID\", \"RB-Pathways\", \"REACTOME\", \"stke\", \"systems-biology.org\", \"SignaLink2.0\", \"SIGNOR2.0\", \"SMPDB\", \"Spike\", \"UniProt_Pathways\", \"WikiPathways\"]\n",
+    "    test.drop(index=[idx for idx in test.index if idx not in pathways], inplace=True)\n",
+    "    test.drop(columns=\"External Source ID\", inplace=True)\n",
+    "    test.reset_index(inplace=True)\n",
+    "    return test\n",
+    "\n",
+    "def gene_pathway_map(pathway):\n",
+    "    # Get index label where UniProt is in the first column (beginning of the table)\n",
+    "    column_label = pathway.loc[pathway.iloc[:,0].apply(lambda row: row==\"UniProt\")].index\n",
+    "    # Drop all previous rows\n",
+    "    pathway = pathway.drop([x for x in range(0, column_label.values[0])])\n",
+    "    # Set first row to column label\n",
+    "    pathway.columns = pathway.iloc[0,:]\n",
+    "    # Reset index labels so that drop works properly in the next line\n",
+    "    pathway.reset_index(drop=True, inplace=True)\n",
+    "    # Drop last 4 rows (always empty with eod at end from pathDIP output)\n",
+    "    pathway = pathway.drop([x for x in range(pathway.shape[0]-4, pathway.shape[0])]).reset_index(drop=True)\n",
+    "    # Drop first row which is column labels\n",
+    "    pathway.drop([0], inplace=True)\n",
+    "    return pathway"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def get_summary_table(data, unique=False):\n",
+    "    '''\n",
+    "    Creates summary table of output from gene targets with first group on the columns, second group on the rows\n",
+    "\n",
+    "    data: output from gtpw_prep\n",
+    "    '''\n",
+    "    summary_table = pd.DataFrame(0,index=[\"+\",\"0\",\"-\"], columns=[\"+\",\"0\",\"-\"]) \n",
+    "\n",
+    "    classes = data[\"Classes\"].unique()\n",
+    "    for category in classes:\n",
+    "        if unique:\n",
+    "            summary_table.loc[category[0],category[2]] = data.loc[data[\"Classes\"] == category].Symbol.unique().shape[0]\n",
+    "        else:\n",
+    "            summary_table.loc[category[0],category[2]] = data.loc[data[\"Classes\"] == category].shape[0]\n",
+    "\n",
+    "    return summary_table"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def mgt_nav_format(mirnagene, genepathway, pathway):\n",
+    "    '''\n",
+    "    Converts the output from miRdb and pathDIP to a format that can be used in NAViGaTOR.\n",
+    "    '''\n",
+    "    mirnagene = mirnagene.filter([\"mirna_name\", \"Symbol\", \"score\", \"description\"])\n",
+    "    sig_path = pathway.loc[pathway[\"q-value (Bonferroni)\"] < 0.05]\n",
+    "    if sig_path.empty:\n",
+    "        print(\"There are no significantly enriched pathways \")\n",
+    "    pathwaygene = pd.merge(sig_path, \n",
+    "                          genepathway, \n",
+    "                          how=\"left\",\n",
+    "                          on=[\"Pathway Source\", \"Pathway Name\"])\n",
+    "    full_map = pd.merge(pathwaygene, mirnagene, how=\"left\", left_on=\"Gene Symbol\", right_on=\"Symbol\").drop([\"Gene Symbol\", \"Classes_y\"], axis=1)\n",
+    "    return full_map"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def mir_gene_path(gene, genemap, path):\n",
+    "    yumyum = {}\n",
+    "    for diet in gene:\n",
+    "        mgt = pd.DataFrame()\n",
+    "        for corchange in gene[diet].Classes.unique():\n",
+    "            temp_mgt = mgt_nav_format(gene[diet].loc[gene[diet].Classes==corchange], \n",
+    "                           genemap[diet].loc[genemap[diet].Classes==corchange],\n",
+    "                           path[diet].loc[path[diet].Classes==corchange])\n",
+    "            print(\"for \" + diet + \" with this correlation change: \" + corchange)\n",
+    "            temp_mgt[\"Classes\"] = corchange\n",
+    "            temp_mgt[\"short_mirna_name\"] = temp_mgt.mirna_name.apply(lambda x: \"-\".join(x.split(\"-\")[1:3]))\n",
+    "            mgt = pd.concat([mgt, temp_mgt])\n",
+    "        yumyum[diet] = mgt\n",
+    "    return yumyum\n",
+    "            \n",
+    "            "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def check_mirnas(dgca, navdata, verbose=True):\n",
+    "    '''Checks if miRNA under the column Gene2 (DGCA) is also in short_mirna_name. \n",
+    "       If not, it will return the short_mirna_names (miRNAs) which are not matching \n",
+    "       the name put into the DGCA algorithm.\n",
+    "        \n",
+    "    Returns:\n",
+    "        navdata_unique[~mask2]::pd.DataFrame\n",
+    "            short_mirna_names which are not matching DGCA names ready to be fixed\n",
+    "    '''\n",
+    "    dgca_unique = dgca.Gene2.unique()\n",
+    "    navdata_unique = navdata.short_mirna_name.unique()\n",
+    "    mask1 = np.isin(dgca_unique, navdata_unique)\n",
+    "    mask2 = np.isin(navdata_unique, dgca_unique)\n",
+    "    if verbose:\n",
+    "        print(\"IN DGCA BUT NOT IN GENE TARGETS: \")\n",
+    "        print(dgca_unique[~mask1])\n",
+    "\n",
+    "        print(\"IN GENE TARGETS BUT NOT IN DGCA: \")\n",
+    "        print(navdata_unique[~mask2])\n",
+    "     \n",
+    "    #Returns only miRNAs found in gene targets that are not found in DGCA; likely missing -5p or -3p delimiter\n",
+    "    return navdata_unique[~mask2]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "bd-fs\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "fs-fso\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-upreg\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "fs-sdg\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "bd-fso\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "bd-sdg\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "fso-sdg\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "bd-fs\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "fs-fso\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "fs-sdg\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "bd-fso\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "bd-sdg\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "de-to-upreg\n",
+      "paths 0 +\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "fso-sdg\n",
+      "de-to-downreg\n",
+      "paths 0 -\n",
+      "down-to-downreg\n",
+      "paths - -\n",
+      "down-to-upreg\n",
+      "paths - +\n",
+      "down-to-dereg\n",
+      "paths - 0\n",
+      "up-to-downreg\n",
+      "paths + -\n",
+      "up-to-dereg\n",
+      "paths + 0\n",
+      "de-to-upreg\n",
+      "paths 0 +\n"
+     ]
+    }
+   ],
+   "source": [
+    "gt_cecum_plus, pw_cecum, pw_cecum_map = gtpw_prep(file_map_cecum_plus)\n",
+    "#old_gt_cecum_plus, pw = gtpw_prep(old_file_map_cecum_plus)\n",
+    "#gt_cecum_noplus, pw = gtpw_prep(file_map_cecum_noplus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "for bd-fs with this correlation change: 0/-\n",
+      "for bd-fs with this correlation change: -/+\n",
+      "for bd-fs with this correlation change: -/0\n",
+      "for bd-fs with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fs with this correlation change: +/-\n",
+      "for bd-fs with this correlation change: 0/+\n",
+      "for bd-fs with this correlation change: +/0\n",
+      "for fs-fso with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: +/-\n",
+      "for fs-fso with this correlation change: 0/-\n",
+      "for fs-fso with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: +/0\n",
+      "for fs-sdg with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: +/-\n",
+      "for fs-sdg with this correlation change: 0/-\n",
+      "for fs-sdg with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: -/+\n",
+      "for fs-sdg with this correlation change: 0/+\n",
+      "for fs-sdg with this correlation change: +/0\n",
+      "for bd-fso with this correlation change: -/+\n",
+      "for bd-fso with this correlation change: +/-\n",
+      "for bd-fso with this correlation change: 0/-\n",
+      "for bd-fso with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fso with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fso with this correlation change: +/0\n",
+      "for bd-fso with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: -/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: +/-\n",
+      "for bd-sdg with this correlation change: -/0\n",
+      "for bd-sdg with this correlation change: 0/-\n",
+      "for bd-sdg with this correlation change: +/0\n",
+      "for fso-sdg with this correlation change: +/-\n",
+      "for fso-sdg with this correlation change: -/+\n",
+      "for fso-sdg with this correlation change: -/0\n",
+      "for fso-sdg with this correlation change: 0/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: +/0\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fs with this correlation change: 0/-\n",
+      "for bd-fs with this correlation change: -/0\n",
+      "for bd-fs with this correlation change: -/+\n",
+      "for bd-fs with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fs with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fs with this correlation change: +/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: +/-\n",
+      "for fs-fso with this correlation change: 0/-\n",
+      "for fs-fso with this correlation change: -/-\n",
+      "for fs-fso with this correlation change: -/+\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-fso with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: -/0\n",
+      "for fs-sdg with this correlation change: 0/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: -/+\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: -/-\n",
+      "for fs-sdg with this correlation change: +/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: +/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fs-sdg with this correlation change: 0/+\n",
+      "for bd-fso with this correlation change: -/-\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fso with this correlation change: +/-\n",
+      "for bd-fso with this correlation change: 0/-\n",
+      "for bd-fso with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-fso with this correlation change: -/+\n",
+      "for bd-fso with this correlation change: +/0\n",
+      "for bd-fso with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: -/-\n",
+      "for bd-sdg with this correlation change: 0/-\n",
+      "for bd-sdg with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: +/-\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: -/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: 0/+\n",
+      "There are no significantly enriched pathways \n",
+      "for bd-sdg with this correlation change: +/0\n",
+      "for fso-sdg with this correlation change: 0/-\n",
+      "for fso-sdg with this correlation change: -/-\n",
+      "for fso-sdg with this correlation change: -/+\n",
+      "for fso-sdg with this correlation change: -/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: +/-\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: +/0\n",
+      "There are no significantly enriched pathways \n",
+      "for fso-sdg with this correlation change: 0/+\n"
+     ]
+    }
+   ],
+   "source": [
+    "test_cecum = mir_gene_path(gt_cecum_plus, pw_cecum_map, pw_cecum)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(22,)"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test_cecum['fs-fso'][\"Pathway Name\"].unique().shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def correct_mirna_name(mirgenepath, dgca):\n",
+    "    '''Corrects the short_mirna_name to the correct miRNA used for DGCA analysis\n",
+    "    '''\n",
+    "    missing = check_mirnas(dgca, mirgenepath)\n",
+    "    for element in missing:\n",
+    "        mask = (mirgenepath[\"short_mirna_name\"] == element)\n",
+    "        name = dgca.Gene2.loc[dgca.Gene2.str.contains(element) & (dgca.Classes == mirgenepath.Classes.loc[mask].values[0])]\n",
+    "        if not name.empty:\n",
+    "            mirgenepath[\"short_mirna_name\"].loc[mask] = name.values[0]\n",
+    "    return mirgenepath\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def mbmirgenepath(mirgenepath, dgca, diets):\n",
+    "    mirgenepath[diets] = correct_mirna_name(mirgenepath[diets], dgca)\n",
+    "    res = pd.merge(mirgenepath[diets], dgca, how=\"inner\", left_on=[\"short_mirna_name\", \"Classes\"], right_on=[\"Gene2\", \"Classes\"]).dropna(axis=1, how=\"all\")\n",
+    "    d1 = diets.split(\"-\")[0].upper()\n",
+    "    d2 = diets.split(\"-\")[1].upper()\n",
+    "    res = res.reindex(columns=['Gene1', 'Gene2', 'mirna_name', \n",
+    "                               'Symbol', 'Pathway Name', 'Pathway Source', \n",
+    "                               d1+\"_cor\", d1+\"_pVal\", d2+\"_cor\", \n",
+    "                               d2+\"_pVal\", \"zScoreDiff\", \"pValDiff\", \n",
+    "                               \"pValDiff_adj\", \"Entrez Gene\", \"score\", \n",
+    "                               'description', 'p-value', 'q-value (FDR: BH-method)', \n",
+    "                               'q-value (Bonferroni)', 'UniProt', 'Classes'])\n",
+    "    return res"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-125a-5p' 'miR-188-3p' 'miR-296-5p' 'miR-34b-5p' 'miR-338-3p'\n",
+      " 'miR-2146' 'miR-2140' 'miR-1224' 'miR-1191' 'miR-342-3p' 'miR-335-5p'\n",
+      " 'miR-1' 'miR-146b' 'miR-335-3p' 'miR-192' 'miR-340-5p' 'miR-1896'\n",
+      " 'miR-199a-5p' 'miR-21' 'miR-340-3p' 'miR-374' 'miR-1186' 'miR-10a'\n",
+      " 'miR-486' 'miR-195' 'miR-450a-5p' 'miR-652' 'miR-125b-3p' 'miR-1839-5p'\n",
+      " 'miR-497' 'miR-99b' 'miR-136' 'miR-1196' 'miR-2135' 'miR-329'\n",
+      " 'miR-542-5p' 'miR-804' 'miR-500' 'miR-125a-3p' 'miR-125b-5p' 'miR-669a'\n",
+      " 'miR-708']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-34b' 'miR-1839' 'miR-335' 'miR-340' 'miR-125a' 'miR-125b']\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.7/site-packages/pandas/core/indexing.py:1732: SettingWithCopyWarning: \n",
+      "A value is trying to be set on a copy of a slice from a DataFrame\n",
+      "\n",
+      "See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy\n",
+      "  self._setitem_single_block(indexer, value, name)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-762' 'miR-125a-5p' 'miR-188-3p' 'miR-296-5p' 'miR-21' 'miR-141'\n",
+      " 'miR-10a' 'miR-382' 'miR-2146' 'miR-126-5p' 'miR-450a-5p' 'miR-193'\n",
+      " 'miR-142-3p' 'miR-378' 'miR-574-3p' 'miR-335-5p' 'miR-328' 'miR-199a-5p'\n",
+      " 'miR-126-3p' 'miR-331-3p' 'miR-34b-5p' 'miR-125b-3p' 'miR-129-3p'\n",
+      " 'miR-1937c' 'miR-345-5p' 'miR-706' 'miR-1937a+miR-1937b' 'miR-362-3p'\n",
+      " 'miR-100' 'miR-297a+miR-466f+miR-669b' 'miR-181b+miR-181d' 'miR-125a-3p'\n",
+      " 'miR-720' 'miR-28' 'miR-501-3p' 'miR-1196' 'miR-804' 'miR-2132'\n",
+      " 'miR-1900' 'miR-340-3p' 'miR-669a' 'miR-484' 'miR-192']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-199a' 'miR-34b' 'miR-501' 'miR-335' 'miR-296' 'miR-362']\n",
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-125a-5p' 'miR-188-3p' 'miR-296-5p' 'miR-762' 'miR-193' 'miR-1198'\n",
+      " 'miR-2146' 'miR-2140' 'miR-706' 'miR-340-3p' 'miR-2134' 'miR-2137'\n",
+      " 'miR-129-3p' 'miR-151-3p' 'miR-500' 'miR-191' 'miR-532-5p' 'miR-140'\n",
+      " 'miR-362-3p' 'miR-106a+miR-17' 'miR-376a' 'miR-10a' 'miR-145'\n",
+      " 'miR-335-5p' 'miR-1944']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-362' 'miR-106a' 'miR-17' 'miR-296' 'miR-335' 'miR-125a']\n",
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-1191' 'miR-1224' 'miR-126-5p' 'miR-136' 'miR-297a+miR-466f+miR-669b'\n",
+      " 'miR-345-5p' 'miR-34b-5p' 'miR-129-3p' 'miR-328' 'miR-362-3p' 'miR-720'\n",
+      " 'miR-181b+miR-181d' 'miR-125b-3p' 'miR-199a-5p' 'miR-21' 'miR-2140'\n",
+      " 'miR-125a-3p' 'miR-1937a+miR-1937b' 'miR-195' 'miR-497' 'miR-652'\n",
+      " 'miR-1937c' 'miR-1196' 'miR-193' 'miR-335-5p' 'miR-338-3p' 'miR-296-5p'\n",
+      " 'miR-450a-5p' 'miR-142-3p' 'miR-28' 'miR-501-3p' 'miR-126-3p'\n",
+      " 'miR-335-3p' 'miR-342-3p' 'miR-374' 'miR-1' 'miR-1186' 'miR-2146'\n",
+      " 'miR-378' 'miR-192' 'miR-340-5p' 'miR-1839-5p' 'miR-2135' 'miR-486'\n",
+      " 'miR-574-3p' 'miR-340-3p' 'miR-331-3p' 'miR-706' 'miR-188-3p' 'miR-1927'\n",
+      " 'miR-423-5p' 'miR-2134' 'miR-804']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-34b' 'miR-335' 'miR-199a' 'miR-501' 'miR-362' 'miR-296' 'miR-340'\n",
+      " 'miR-1839' 'miR-669b' 'miR-297a' 'miR-466f' 'miR-181b' 'miR-181d'\n",
+      " 'miR-338' 'miR-331' 'miR-125a' 'miR-188']\n",
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-1839-5p' 'miR-2137' 'miR-376a' 'miR-374' 'miR-532-5p' 'miR-335-5p'\n",
+      " 'miR-106a+miR-17' 'miR-34b-5p' 'miR-335-3p' 'miR-1186' 'miR-1896'\n",
+      " 'miR-342-3p' 'miR-652' 'miR-340-3p' 'miR-500' 'miR-1224' 'miR-338-3p'\n",
+      " 'miR-1198' 'miR-140' 'miR-151-3p' 'miR-2140' 'miR-1191' 'miR-340-5p'\n",
+      " 'miR-2146' 'miR-136' 'miR-192' 'miR-193' 'miR-2135' 'miR-362-3p' 'miR-1'\n",
+      " 'miR-125b-3p' 'miR-129-3p' 'miR-195' 'miR-486' 'miR-10a' 'miR-497'\n",
+      " 'miR-706' 'miR-99b' 'miR-199a-5p' 'miR-21' 'miR-450a-5p' 'miR-1196'\n",
+      " 'miR-2134']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-335' 'miR-340' 'miR-34b' 'miR-362' 'miR-3101' 'miR-106a' 'miR-17'\n",
+      " 'miR-3105' 'miR-199a' 'miR-3112' 'miR-1839' 'miR-3102']\n",
+      "IN DGCA BUT NOT IN GENE TARGETS: \n",
+      "['miR-106a+miR-17' 'miR-181b+miR-181d' 'miR-125b-3p' 'miR-532-5p'\n",
+      " 'miR-2137' 'miR-151-3p' 'miR-1937c' 'miR-199a-5p' 'miR-362-3p' 'miR-376a'\n",
+      " 'miR-500' 'miR-762' 'miR-2140' 'miR-2146' 'miR-450a-5p' 'miR-100'\n",
+      " 'miR-142-3p' 'miR-99b' 'miR-296-5p' 'miR-574-3p' 'miR-690' 'miR-126-5p'\n",
+      " 'miR-21' 'miR-2134' 'miR-501-3p' 'miR-125a-3p' 'miR-1937a+miR-1937b'\n",
+      " 'miR-126-3p' 'miR-129-3p' 'miR-191' 'miR-28' 'miR-706' 'miR-331-3p'\n",
+      " 'miR-140' 'miR-340-3p' 'miR-345-5p' 'miR-193' 'miR-328' 'miR-335-5p'\n",
+      " 'miR-378' 'miR-297a+miR-466f+miR-669b' 'miR-34b-5p' 'miR-720'\n",
+      " 'miR-20a+miR-20b' 'miR-2135' 'miR-338-5p' 'miR-1186' 'miR-539']\n",
+      "IN GENE TARGETS BUT NOT IN DGCA: \n",
+      "['miR-362' 'miR-199a' 'miR-501' 'miR-34b' 'miR-335' 'miR-296']\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Gets NAViGaTOR formatted microbiome-miRNA-gene target-pathways for the cecum\n",
+    "for key in test_cecum:\n",
+    "    gtFinder.load_data(cecum_path, sheet_name=key.replace(\"-\",\"\"), filter_val=0.05)\n",
+    "    test_cecum[key] = mbmirgenepath(test_cecum, gtFinder.data, key)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "gtFinder.load_data(cecum_path, sheet_name = \"bdfs\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"bd-fs\"])\n",
+    "gtFinder.load_data(cecum_path, sheet_name = \"fsfso\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"fs-fso\"])\n",
+    "gtFinder.load_data(cecum_path, sheet_name = \"fssdg\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"fs-sdg\"])\n",
+    "gtFinder.load_data(cecum_path, sheet_name = \"bdfso\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"bd-fso\"])\n",
+    "gtFinder.load_data(cecum_path, sheet_name = \"bdsdg\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"bd-sdg\"])\n",
+    "gtFinder.load_data(cecum_path, sheet_name = \"fsosdg\", filter_val = 0.05)\n",
+    "check_mirnas(gtFinder.data, test_cecum[\"fso-sdg\"])\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with pd.ExcelWriter(\"../Results/dw20220714-1.xlsx\") as writer:\n",
+    "    for diet in gt_cecum_plus:\n",
+    "        cname=\"cecum \" + diet\n",
+    "        test_cecum[diet].to_excel(writer, index=False, sheet_name=cname)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def gtvsgt_mirdiff(gt1, gt2):\n",
+    "    for diet in gt1:\n",
+    "        diff = np.setdiff1d(gt1[diet][\"mirna_name\"].unique(),gt2[diet][\"mirna_name\"].unique(), assume_unique=False)\n",
+    "        if diff.size==0:\n",
+    "            print(\"There are no differences between the \" + diet + \" gene target results.\")\n",
+    "        else:\n",
+    "            print(\"The mirnas that are different between diets \" + diet + \" are: \")\n",
+    "            print(diff)\n",
+    "            if gt1[diet].loc[gt1[diet][\"mirna_name\"].isin(diff)].shape[0] == abs(gt1[diet].shape[0] - gt2[diet].shape[0]):\n",
+    "                print(\"MiRNA gene targets with + account for differences\")\n",
+    "    return"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "gtvsgt_mirdiff(gt_cecum_plus, gt_cecum_noplus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with pd.ExcelWriter(\"../Results/dw20220408/dw20220408-13.xlsx\") as writer:\n",
+    "    for diet in gt_cecum_plus:\n",
+    "        cname=\"cecum \" + diet\n",
+    "        gt_cecum_plus[diet].to_excel(writer, index=False, sheet_name=cname)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Gene target summary of comparisons between diets"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def summary_matrix(comparisons, columns):\n",
+    "    categories = [\"+/-\", \"-/+\", \"+/0\", \"0/+\", \"-/0\", \"0/-\", \"+/+\", \"-/-\", \"0/0\"]\n",
+    "\n",
+    "    count = 0\n",
+    "    inner_count = 0\n",
+    "    \n",
+    "    index = pd.MultiIndex.from_product([comparisons.keys(), categories])\n",
+    "    comp_mat = pd.DataFrame(0, index=index, columns=index)\n",
+    "    comp_list = pd.DataFrame()\n",
+    "\n",
+    "    for key1 in comparisons:\n",
+    "        count += 1\n",
+    "        inner_count = 0\n",
+    "        for key2 in comparisons:\n",
+    "            inner_count += 1\n",
+    "            if inner_count > count:\n",
+    "                local_pairs = pd.merge(left=comparisons[key1], right=comparisons[key2], how=\"inner\", on=columns)\n",
+    "                local_pairs[\"Comp_x\"] = key1\n",
+    "                local_pairs[\"Comp_y\"] = key2\n",
+    "                comp_list = pd.concat([comp_list, local_pairs], ignore_index=True)\n",
+    "                for row in local_pairs.index:\n",
+    "                    comp_mat.loc[(key1, local_pairs.loc[row].Classes_x), (key2, local_pairs.loc[row].Classes_y)] += 1\n",
+    "    return comp_list, comp_mat"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "genesum_list, genesum_matrix = summary_matrix(gt, ['mirna_name', 'refseqid', 'Symbol'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pathsum_list, pathsum_matrix = summary_matrix(pw, [\"Pathway Name\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "with pd.ExcelWriter('../Results/dw20220330-1.xlsx', engine='xlsxwriter') as writer:\n",
+    "    genesum_list.to_excel(writer, sheet_name=\"cecum_gene-list\", index=False)\n",
+    "    genesum_matrix.to_excel(writer, sheet_name=\"cecum_gene-matrix\")\n",
+    "    pathsum_list.to_excel(writer, sheet_name=\"cecum_path-list\", index=False)\n",
+    "    pathsum_matrix.to_excel(writer, sheet_name=\"cecum_path-matrix\")\n",
+    "    dgca_comp_list.to_excel(writer, sheet_name=\"cecum_dgca-list\", index=False)\n",
+    "    dgca_comp_matrix.to_excel(writer, sheet_name=\"cecum_dgca-matrix\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### DGCA summary of comparisons between diet correlation comparisons"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Cecum DGCA results for all diets\n",
+    "file = pd.ExcelFile('../Results/dw20220311-1.xlsx')\n",
+    "cecum_dgca = pd.read_excel(file, sheet_name=diets)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "diets = [\"bdfs\", \"fsfso\", \"fssdg\", \"bdfso\", \"bdsdg\", \"fsosdg\"]\n",
+    "for diet in diets:\n",
+    "    # Filter to remove null genes and non-significant pairs\n",
+    "    cecum_dgca[diet] = cecum_dgca[diet].loc[(~cecum_dgca[diet]['Gene1'].isnull()) & (cecum_dgca[diet]['pValDiff_adj'] < 0.05)]\n",
+    "    cecum_dgca[diet] = cecum_dgca[diet][['Gene1', 'Gene2',\"Classes\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "dgca_comp_list, dgca_comp_matrix = summary_matrix(cecum_dgca, [\"Gene1\", \"Gene2\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "dgca_list.to_excel(\"../Results/dw20220325-1.xlsx\")\n",
+    "dgca_mat.to_excel(\"../Results/dw20220325-mat.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Check which genes are in common between comparisons for pathways that are relevant"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# miRNA-gene target-pathway NAV formatted\n",
+    "file = pd.ExcelFile(\"../Results/dw20220504-1.xlsx\")\n",
+    "mirgenepath = pd.read_excel(file, sheet_name=None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "c_bdfs = mirgenepath['cecum bd-fs']\n",
+    "c_fsfso = mirgenepath['cecum fs-fso']\n",
+    "c_fssdg = mirgenepath['cecum fs-sdg']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "shared_pathways = [\"PI3K_AKT_MTOR\", \"Regulation of RUNX1 Expression and Activity\", \"Purine metabolism;  3',5'-cyclic AMP degradation\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "c_bdfs_shared = c_bdfs.loc[c_bdfs[\"Pathway Name\"].isin(shared_pathways)]\n",
+    "c_fsfso_shared = c_fsfso.loc[c_fsfso[\"Pathway Name\"].isin(shared_pathways)]\n",
+    "c_fssdg_shared = c_fssdg.loc[c_fssdg[\"Pathway Name\"].isin(shared_pathways)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array(['Akt3', 'Btrc', 'Ccnd2', 'Ccne1', 'Dcaf7', 'Fbxw7', 'Mapkap1',\n",
+       "       'Ywhah', 'Ccne2', 'Runx2', 'Skp2', 'Xpo1', 'Ulk2', 'Rps6ka3',\n",
+       "       'Plk2', 'Cdk6', 'Rps6ka6', 'Ube2g1', 'Ulk1', 'Rasa1', 'Dek',\n",
+       "       'Tnrc6b', 'Ago2', 'Tnrc6a', 'Pde10a', 'Pde4b', 'Pde7a'],\n",
+       "      dtype=object)"
+      ]
+     },
+     "execution_count": 31,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "c_bdfs_shared.loc[c_bdfs_shared.Symbol.isin(c_fssdg_shared.Symbol) ].Symbol.unique()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array(['Apaf1', 'Fbxw7', 'Gab1', 'Plk2', 'Akt3', 'Ccnd1', 'Ccnd2', 'Cdk6',\n",
+       "       'Ccne2', 'Runx2', 'Skp2', 'Xpo1', 'Ulk2', 'Bcl2l11', 'Btrc',\n",
+       "       'Ccne1', 'Dcaf7', 'Mapkap1', 'Ywhah', 'Dcaf6', 'Uba6', 'Flt3',\n",
+       "       'Rasa1', 'Runx1', 'Tnrc6a', 'Tnrc6b', 'Ago2', 'Ago1', 'Pde10a',\n",
+       "       'Pde4b', 'Pde7a'], dtype=object)"
+      ]
+     },
+     "execution_count": 32,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "c_fsfso_shared.loc[c_fsfso_shared.Symbol.isin(c_fssdg_shared.Symbol)].Symbol.unique()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Pathway Source</th>\n",
+       "      <th>Pathway Name</th>\n",
+       "      <th>p-value</th>\n",
+       "      <th>q-value (FDR: BH-method)</th>\n",
+       "      <th>q-value (Bonferroni)</th>\n",
+       "      <th>Classes_x</th>\n",
+       "      <th>UniProt</th>\n",
+       "      <th>Entrez Gene</th>\n",
+       "      <th>mirna_name</th>\n",
+       "      <th>Symbol</th>\n",
+       "      <th>...</th>\n",
+       "      <th>short_mirna_name</th>\n",
+       "      <th>Gene1</th>\n",
+       "      <th>Gene2</th>\n",
+       "      <th>FS_cor</th>\n",
+       "      <th>FS_pVal</th>\n",
+       "      <th>SDG_cor</th>\n",
+       "      <th>SDG_pVal</th>\n",
+       "      <th>zScoreDiff</th>\n",
+       "      <th>pValDiff</th>\n",
+       "      <th>pValDiff_adj</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>0 rows × 23 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Empty DataFrame\n",
+       "Columns: [Pathway Source, Pathway Name, p-value, q-value (FDR: BH-method), q-value (Bonferroni), Classes_x, UniProt, Entrez Gene, mirna_name, Symbol, score, description, Classes, short_mirna_name, Gene1, Gene2, FS_cor, FS_pVal, SDG_cor, SDG_pVal, zScoreDiff, pValDiff, pValDiff_adj]\n",
+       "Index: []\n",
+       "\n",
+       "[0 rows x 23 columns]"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "c_bdfs_shared.Symbol.isin(c_fssdg_shared.Symbol)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Check for 0 p-value "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "file = pd.ExcelFile('../Data/dw20220302-3.xlsx')\n",
+    "cecum_mb = pd.read_excel(file, sheet_name=diets, index_col=[0,1])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "bd_zero = cecum_dgca[\"bdfs\"].loc[cecum_dgca[\"bdfs\"].iloc[:,3] == 0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "comparison = {}\n",
+    "for diet in cecum_dgca:\n",
+    "    comparison[diet] = cecum_dgca[diet].loc[(cecum_dgca[diet].iloc[:,3] == 0) | (cecum_dgca[diet].iloc[:,5] == 0)]#.Gene1.unique()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cecum_mb[\"bdfs\"].loc[cecum_mb[\"Group\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "idx = pd.IndexSlice\n",
+    "cecum_mb[\"bdfs\"].loc[idx[:,\"BD\"],cecum_mb[\"bdfs\"].columns.isin(bd_zero.Gene1)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cecum_mb[\"bdfs\"].columns.isin(bd_zero.Gene1)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Visualize differential correlations"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get NCBI Information for gene symbols"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def get_gene_counts(data):\n",
+    "    ''' Count unique and total number of genes '''\n",
+    "    for key in data:\n",
+    "        unique = data[key][\"Symbol\"].unique().shape[0]\n",
+    "        print(key + \" unique genes: \" + str(unique))\n",
+    "        print(key+\" total number of genes: \" + str(data[key][\"Symbol\"].shape[0]))\n",
+    "        print(\"------------------------------------\")\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Visualize basal diet to flaxseed diet genes\n",
+    "set1 = set(bdfs_fullgene['down-to-upreg']['Symbol'])\n",
+    "set2 = set(bdfs_fullgene['down-to-downreg']['Symbol'])\n",
+    "set3 = set(bdfs_fullgene['up-to-downreg']['Symbol'])\n",
+    "venn3([set1,set2,set3], ('Down-to-upreg', 'Down-to-downreg', 'Up-to-downreg'))\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Visualize flaxseed diet to sdg diet genes affected\n",
+    "set1 = set(fssdg_fullgene['down-to-upreg']['Symbol'])\n",
+    "set2 = set(fssdg_fullgene['down-to-downreg']['Symbol'])\n",
+    "set3 = set(fssdg_fullgene['up-to-downreg']['Symbol'])\n",
+    "venn3([set1,set2,set3], ('Down-to-upreg', 'Down-to-downreg', 'Up-to-downreg'))\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Export results\n",
+    "with pd.ExcelWriter(\"../Results/Correlations/dw20210820-1.xlsx\") as writer:\n",
+    "    for reg in bdfs_fullgene.keys():\n",
+    "        bdfs_fullgene[reg].to_excel(writer, sheet_name=\"bdfs-\" + reg)\n",
+    "        print(\"Exported \" + reg + \" to excel for basal/flaxseed comparison...\")\n",
+    "        fssdg_fullgene[reg].to_excel(writer, sheet_name=\"fssdg-\" + reg)\n",
+    "        print(\"Exported \" + reg + \" to excel for flaxseed/sdg comparison...\")\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# (not implemented yet) Get number of duplicates of miRNA and duplicate gene id by that number\n",
+    "sig_bd_fs_dc.groupby('Gene2',as_index=False).size()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get pubmed info on each gene & if it relates to breast cancer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# For each regulation difference, apply functions\n",
+    "def search_pubmed(gene_name):\n",
+    "    handle = Entrez.esearch(db=\"PubMed\",term=str(gene_name)+\" AND (breast cancer OR mammary gland OR mammary development OR breast development)\")\n",
+    "    info = Entrez.read(handle)\n",
+    "    print(gene_name)\n",
+    "    if info is not None:\n",
+    "        return info[\"Count\"], info[\"IdList\"]\n",
+    "    else:\n",
+    "        return None"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for regtype in bdfs_fullgene:\n",
+    "    bdfs_fullgene[regtype][['PubMed',\"Article no\"]] = bdfs_fullgene[regtype]['Symbol'].apply(search_pubmed)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for regtype in fssdg_fullgene:\n",
+    "    fssdg_fullgene[regtype][[\"PubMed\",\"Article No\"]] = fssdg_fullgene[regtype]['Symbol'].apply(search_pubmed)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get gene ontology for each class"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from goatools.test_data.genes_NCBI_10090_ProteinCoding import GENEID2NT as GeneID2nt_mus\n",
+    "from goatools.goea.go_enrichment_ns import GOEnrichmentStudyNS\n",
+    "\n",
+    "from goatools.obo_parser import GODag\n",
+    "obodag = GODag(\"go-basic.obo\")\n",
+    "\n",
+    "def get_go(data,obodag,local_geneIDs,filename):\n",
+    "    cor_map = {'0/-': 'dereg-to-downreg', '-/+': 'down-to-upreg',\n",
+    "              '-/0': 'down-to-dereg', '-/-': 'down-to-downreg', '+/-': 'up-to-downreg',\n",
+    "              '0/+': 'de-to-upreg', '+/0': 'up-to-dereg', \n",
+    "               '0/-': 'de-to-dereg', '+/+': 'up-to-upreg'}\n",
+    "    for difcor in cor_map:\n",
+    "        sub_cor = data.loc[(data['Classes'] == difcor) & (data['empPVals'] < 0.05)]\n",
+    "        goeaobj = GOEnrichmentStudyNS(\n",
+    "                        GeneID2nt_mus.keys(), # List of mouse protein-coding genes\n",
+    "                        ns2assoc, # geneid/GO associations\n",
+    "                        obodag, # Ontologies\n",
+    "                        propagate_counts = False,\n",
+    "                        alpha = 0.05, # default significance cut-off\n",
+    "                        methods = ['fdr_bh']) # defult multipletest correction method\n",
+    "        gt = get_gene_targets(gene_targets_mmu, sub_cor['Gene2'])\n",
+    "        gt = gt.reset_index().rename({\"target\": \"refseqid\"}, axis=1).merge(local_geneIDs, how=\"left\", on=\"refseqid\")\n",
+    "        res = goeaobj.run_study(gt['geneid'].values.tolist(), prt=None)\n",
+    "        goeaobj.wr_xlsx(filename + '-' + cor_map[difcor] + \".xlsx\", res)\n",
+    "        '''\n",
+    "        #For exporting data\n",
+    "        with pd.ExcelWriter(\"../Results/correlations/\"+filename+'-'+ cor_map[difcor]\".xlsx\") as writer:\n",
+    "            res.to_excel(writer, sheet_name=difcor)\n",
+    "            print(\"Exporting \" + cor_map[difcor] + \"...\")\n",
+    "        '''\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "get_go(fs_sdg_diffcor,obodag,local_geneIDs,'dw20210805-2')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Visualize differential correlation data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Plotting functions for differential correlation data\n",
+    "def get_short_name(names):\n",
+    "    split = names.split(\"|\")\n",
+    "    if split[5] != \"g__\":\n",
+    "        return split[5]\n",
+    "    elif split[4] != (\"f__\" or \"f__Other\"):\n",
+    "        return split[4]\n",
+    "    elif split[3] != (\"o__\" or \"o__Other\"):\n",
+    "        return split[3]\n",
+    "    elif split[2] != (\"c__\" or \"c__Other\"):\n",
+    "        return split[2]\n",
+    "    elif split[1] != (\"p__\" or \"p__Other\"):\n",
+    "        return split[1]\n",
+    "    else:\n",
+    "        return split[0]\n",
+    "    return None\n",
+    "\n",
+    "def rename_duplicate(names):\n",
+    "    split = names.split(\"|\")\n",
+    "    symb = \"|\"\n",
+    "    if split[5] != \"g__\":\n",
+    "        return symb.join(split[4:6])\n",
+    "    elif split[4] != \"f__\" or \"f__Other\":\n",
+    "        return symb.join(split[3:5])\n",
+    "    elif split[3] != \"o__\" or \"o__Other\":\n",
+    "        return symb.join(split[2:4])\n",
+    "    elif split[2] != \"c__\" or \"c__Other\":\n",
+    "        return symb.join(split[1:3])\n",
+    "    elif split[1] != \"p__\" or \"p__Other\":\n",
+    "        return symb.join(split[0:2])\n",
+    "    else:\n",
+    "        return split[0]\n",
+    "    \n",
+    "def plot_cor(data, title, save=False, filename=None):\n",
+    "    data['Microbiota'] = data['Gene1'].apply(get_short_name)\n",
+    "    toplot = data.loc[(data['Classes'] == '-/+') | (data['Classes'] == '+/-')] \n",
+    "                      \n",
+    "    if toplot.duplicated(subset=['Microbiota', 'Gene2']).any():\n",
+    "        print(\"Removing duplicates...\")\n",
+    "        duplicates = toplot.duplicated(subset=['Microbiota','Gene2'])\n",
+    "        toplot['Microbiota'].loc[toplot[duplicates]] = toplot.loc[duplicates].apply(rename_duplicate)\n",
+    "        \n",
+    "    toplot.sort_values(by = ['Lignan producer?','Good or bad for BC'], inplace=True)\n",
+    "    pivot = toplot[['Microbiota', 'Gene2', 'zScoreDiff']].pivot_table(index='Microbiota', \n",
+    "                                                                     columns='Gene2', \n",
+    "                                                                     values='zScoreDiff',\n",
+    "                                                                     sort=False)\n",
+    "    fig, axs = plt.subplots(1,1, figsize = (15,10))\n",
+    "    axs.set_title(title)\n",
+    "    axs = sb.heatmap(pivot, cmap=\"PiYG\", ax=axs, square=True, center=0, linewidth=0.1, linecolor=\"White\")\n",
+    "    axs.set_aspect('auto')\n",
+    "    axs.set_xlabel('MiRNA', fontsize=25)\n",
+    "    axs.set_ylabel('Microbiota', fontsize=25)\n",
+    "    sb.set(font_scale=1.5)\n",
+    "    if save:\n",
+    "        plt.savefig(filename, bbox_inches='tight')\n",
+    "    return\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_cor(sig_bd_fs_dc, \"Differential correlation z-scores from BD to FS (p<0.05)\", save=True, filename=\"../Results/correlations/dw20211114-1.png\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_cor(sig_fs_sdg_dc, \"Differential correlation z-scores from FS to SDG (p<0.05)\", save=True, filename=\"../Results/correlations/dw20211114-2.png\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.hist(sig_bd_fs_dc[np.isfinite(sig_bd_fs_dc['pValDiff'])]['pValDiff'].values,bins=25)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_cor(sig_fs_fso_dc, \"Cecum differential correlation z-scores from FS to SDG\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "data = pd.read_excel(\"../Results/dgca/dw20220211-9.xlsx\", sheet_name=\"FS-SDG\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "get_summary_table(data, qval=0.15)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.7"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": true,
+   "toc_position": {
+    "height": "calc(100% - 180px)",
+    "left": "10px",
+    "top": "150px",
+    "width": "341px"
+   },
+   "toc_section_display": true,
+   "toc_window_display": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
