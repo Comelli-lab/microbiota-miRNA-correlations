@@ -1,0 +1,2282 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "toc": true
+   },
+   "source": [
+    "<h1>Table of Contents<span class=\"tocSkip\"></span></h1>\n",
+    "<div class=\"toc\"><ul class=\"toc-item\"><li><span><a href=\"#Correlation-Analysis-for-Microbiota-and-miRNA-data\" data-toc-modified-id=\"Correlation-Analysis-for-Microbiota-and-miRNA-data-1\"><span class=\"toc-item-num\">1&nbsp;&nbsp;</span>Correlation Analysis for Microbiota and miRNA data</a></span><ul class=\"toc-item\"><li><span><a href=\"#Load-data\" data-toc-modified-id=\"Load-data-1.1\"><span class=\"toc-item-num\">1.1&nbsp;&nbsp;</span>Load data<li><span><a href=\"#Get-Kendall-correlations\" data-toc-modified-id=\"Get-Kendall-correlations-1.2\"><span class=\"toc-item-num\">1.2&nbsp;&nbsp;</span>Get Kendall correlations</a></span><ul class=\"toc-item\"><li><span><a href=\"# Correlation-without-transformations/corrections\" data-toc-modified-id=\" Correlation-without-transformations/corrections-1.2.1\"><span class=\"toc-item-num\">1.2.1&nbsp;&nbsp;</span> Correlation without transformations/corrections</a></span></li><li><span><a href=\"# Correlation-with-log-ratio-transformation\" data-toc-modified-id=\" Correlation-with-log-ratio-transformation-1.2.2\"><span class=\"toc-item-num\">1.2.2&nbsp;&nbsp;</span> Correlation with log-ratio transformation</a></span><ul class=\"toc-item\"><li><span><a href=\"#Figure-out-which-taxa/genus-is-present-in-all-4-diets-so-know-which-to-normalize-to\" data-toc-modified-id=\"Figure-out-which-taxa/genus-is-present-in-all-4-diets-so-know-which-to-normalize-to-1.2.2.1\"><span class=\"toc-item-num\">1.2.2.1&nbsp;&nbsp;</span>Figure out which taxa/genus is present in all 4 diets so know which to normalize to</a></span></li><li><span><a href=\"#Do-correlations-with-log-transformed-data-(lactobacillus)\" data-toc-modified-id=\"Do-correlations-with-log-transformed-data-(lactobacillus)-1.2.2.2\"><span class=\"toc-item-num\">1.2.2.2&nbsp;&nbsp;</span>Do correlations with log-transformed data (lactobacillus)</a></span></li><li><span><a href=\"#Do-correlations-with-log-transformed-data-(averaged-present-in-all-microbiome)\" data-toc-modified-id=\"Do-correlations-with-log-transformed-data-(averaged-present-in-all-microbiome)-1.2.2.3\"><span class=\"toc-item-num\">1.2.2.3&nbsp;&nbsp;</span>Do correlations with log-transformed data (averaged present in all microbiome)</a></span></li></ul></li><li><span><a href=\"#Set-up-copy-number-correction\" data-toc-modified-id=\"Set-up-copy-number-correction-1.2.3\"><span class=\"toc-item-num\">1.2.3&nbsp;&nbsp;</span>Set up copy number correction</a></span></li><li><span><a href=\"# Correlation-with-qPCR-correction\" data-toc-modified-id=\" Correlation-with-qPCR-correction-1.2.4\"><span class=\"toc-item-num\">1.2.4&nbsp;&nbsp;</span> Correlation with qPCR correction</a></span><ul class=\"toc-item\"><li><span><a href=\"#rrnDB-correction\" data-toc-modified-id=\"rrnDB-correction-1.2.4.1\"><span class=\"toc-item-num\">1.2.4.1&nbsp;&nbsp;</span>rrnDB correction</a></span></li><li><span><a href=\"#Get-correlations \" data-toc-modified-id=\"Get-correlations -1.2.4.2\"><span class=\"toc-item-num\">1.2.4.2&nbsp;&nbsp;</span>Get correlations </a></span></li></ul></li></ul></li><li><span><a href=\"#Get-Spearman-correlations\" data-toc-modified-id=\"Get-Spearman-correlations-1.3\"><span class=\"toc-item-num\">1.3&nbsp;&nbsp;</span>Get Spearman correlations<li><span><a href=\"#Get-correlation-ignoring-diet\" data-toc-modified-id=\"Get-correlation-ignoring-diet-1.4\"><span class=\"toc-item-num\">1.4&nbsp;&nbsp;</span>Get correlation ignoring diet</a></span></li><li><span><a href=\"#Correlation-with-miRNA-gene-targets\" data-toc-modified-id=\"Correlation-with-miRNA-gene-targets-1.5\"><span class=\"toc-item-num\">1.5&nbsp;&nbsp;</span>Correlation with miRNA gene targets</a></span><ul class=\"toc-item\"><li><span><a href=\"#Load-dataframe-&amp;-get-all-mouse-gene-targets-(contains-mmu)\" data-toc-modified-id=\"Load-dataframe-&amp;-get-all-mouse-gene-targets-(contains-mmu)-1.5.1\"><span class=\"toc-item-num\">1.5.1&nbsp;&nbsp;</span>Load dataframe &amp; get all mouse gene targets (contains mmu)</a></span></li><li><span><a href=\"#Get-gene-targets-for-all-mirnas-in-experiment\" data-toc-modified-id=\"Get-gene-targets-for-all-mirnas-in-experiment-1.5.2\"><span class=\"toc-item-num\">1.5.2&nbsp;&nbsp;</span>Get gene targets for all mirnas in experiment</a></span></li><li><span><a href=\"#Get-significant-pre-correction-miRNAs-in-RefSeq-format\" data-toc-modified-id=\"Get-significant-pre-correction-miRNAs-in-RefSeq-format-1.5.3\"><span class=\"toc-item-num\">1.5.3&nbsp;&nbsp;</span>Get significant pre-correction miRNAs in RefSeq format</a></span></li><li><span><a href=\"#Convert-RefSeq-to-GeneID-https://github.com/taoliu/taolib/blob/master/Scripts/convert_gene_ids.py\" data-toc-modified-id=\"Convert-RefSeq-to-GeneID-https://github.com/taoliu/taolib/blob/master/Scripts/convert_gene_ids.py-1.5.4\"><span class=\"toc-item-num\">1.5.4&nbsp;&nbsp;</span>Convert RefSeq to GeneID</a></span><ul class=\"toc-item\"><li><span><a href=\"#Local-conversion\" data-toc-modified-id=\"Local-conversion-1.5.4.1\"><span class=\"toc-item-num\">1.5.4.1&nbsp;&nbsp;</span>Local conversion</a></span></li><li><span><a href=\"#Online-conversion-(takes-MUCH-LONGER)\" data-toc-modified-id=\"Online-conversion-(takes-MUCH-LONGER)-1.5.4.2\"><span class=\"toc-item-num\">1.5.4.2&nbsp;&nbsp;</span>Online conversion (takes MUCH LONGER)</a></span></li></ul></li><li><span><a href=\"#From-GOATOOLS-example-https://github.com/tanghaibao/goatools/blob/main/notebooks/goea_nbt3102.ipynb\" data-toc-modified-id=\"From-GOATOOLS-example-https://github.com/tanghaibao/goatools/blob/main/notebooks/goea_nbt3102.ipynb-1.5.5\"><span class=\"toc-item-num\">1.5.5&nbsp;&nbsp;</span>From GOATOOLS example </a></span><ul class=\"toc-item\"><li><span><a href=\"#Download-files-(ontology-data)\" data-toc-modified-id=\"Download-files-(ontology-data)-1.5.5.1\"><span class=\"toc-item-num\">1.5.5.1&nbsp;&nbsp;</span>Download files (ontology data)</a></span></li><li><span><a href=\"#Read-mouse-geneIDs-to-gene-ontologies\" data-toc-modified-id=\"Read-mouse-geneIDs-to-gene-ontologies-1.5.5.2\"><span class=\"toc-item-num\">1.5.5.2&nbsp;&nbsp;</span>Read mouse geneIDs to gene ontologies</a></span></li><li><span><a href=\"#GOEA-Analysis-for-all-genes\" data-toc-modified-id=\"GOEA-Analysis-for-all-genes-1.5.5.3\"><span class=\"toc-item-num\">1.5.5.3&nbsp;&nbsp;</span>GOEA Analysis for all genes</a></span></ul></li><li><span><a href=\"#MiRNA-gene-targets-for-differential-correlation\" data-toc-modified-id=\"MiRNA-gene-targets-for-differential-correlation-1.6\"><span class=\"toc-item-num\">1.6&nbsp;&nbsp;</span>MiRNA gene targets for differential correlation</ul></li></ul></li></ul></li></ul></li><ul class=\"toc-item\"><li><span><a href=\"#Visualize-data\" data-toc-modified-id=\"Visualize-data-2\"><span class=\"toc-item-num\">2&nbsp;&nbsp;</span>Visualize data</a></span><ul class=\"toc-item\"><li><span><a href=\"#Data-cleaning\" data-toc-modified-id=\"Data-cleaning-2.1\"><span class=\"toc-item-num\">2.1&nbsp;&nbsp;</span>Data cleaning</a></span><ul class=\"toc-item\"><li><span><a href=\"#Filter-data-for-p<0.05\" data-toc-modified-id=\"Filter-data-for-p<0.05-2.1.1\"><span class=\"toc-item-num\">2.1.1&nbsp;&nbsp;</span>Filter data for p&lt;0.05</a></span></li><li><span><a href=\"#Get-shorter-name-for-visibility\" data-toc-modified-id=\"Get-shorter-name-for-visibility-2.1.2\"><span class=\"toc-item-num\">2.1.2&nbsp;&nbsp;</span>Get shorter name for visibility</a></span></li><li><span><a href=\"#Remove-duplicated-microbiome-name\" data-toc-modified-id=\"Remove-duplicated-microbiome-name-2.1.3\"><span class=\"toc-item-num\">2.1.3&nbsp;&nbsp;</span>Remove duplicated microbiome name</a></span></li></ul></li><li><span><a href=\"#Visualize-correlations-in-heatmap\" data-toc-modified-id=\"Visualize-correlations-in-heatmap-2.2\"><span class=\"toc-item-num\">2.2&nbsp;&nbsp;</span>Visualize correlations in heatmap</a></span></li><li><span><a href=\"#Visualize-p-values\" data-toc-modified-id=\"Visualize-p-values-2.3\"><span class=\"toc-item-num\">2.3&nbsp;&nbsp;</span>Visualize p-values</a></span></li></ul></li><li><span><a href=\"#qPCR-compared-to-relative-abundance\" data-toc-modified-id=\"qPCR-compared-to-relative-abundance-3\"><span class=\"toc-item-num\">3&nbsp;&nbsp;</span>qPCR compared to relative abundance</a></span></li></ul></div>"
+  ]
+},
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "# Correlation Analysis for Microbiota and miRNA data"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "This notebook will be used to conduct correlation analysis between microbiota and miRNA data. The analysis will be done with using the Kendall-tau correlation framework from scipy. Spearman's R will be included for comparison. The results will contain combinations of taxa and miRNA with significant correlation (p < 0.05 or q < 0.05). Another result will contain combinations between taxa and between miRNA that will be informational and interesting to see if taxa or miRNA increase with each other. \n",
+        "\n",
+        "2021-02-25: Added qPCR normalization as a script to the correlations. Will add as a permanent fixture in the future."
+      ]
+    },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "from scipy import stats\n",
+    "import openpyxl\n",
+    "import matplotlib\n",
+    "import matplotlib.pyplot as plt\n",
+    "import seaborn as sb\n",
+    "import time\n",
+    "import networkx as nx\n",
+    "import uniprot\n",
+    "import pprint\n",
+    "import goatools\n",
+    "import sys\n",
+    "from matplotlib_venn import venn3\n",
+    "from Bio import Entrez"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "class Correlation:\n",
+    "    def __init__(self, filename, sheetname, taxa=None, index_col = None, usecols = None, nrows=None):\n",
+    "        self.taxa = taxa\n",
+    "        self.diet = ['BD', 'FS', 'FSO', 'SDG']\n",
+    "        self.microbiome, self.mirna = self.load_data(filename, sheetname, taxa, index_col, usecols, nrows)\n",
+    "        self.cor = {'spearman': {}, 'kendall': {}}\n",
+    "        self.sig_cor = {'spearman': {}, 'kendall': {}}\n",
+    "    \n",
+    "    def load_data(self, filename, sheetname, taxa='all', index_col = None, usecols = None, nrows=None):\n",
+    "        '''\n",
+    "        Loads data to class.\n",
+    "        \n",
+    "        Parameters\n",
+    "        ---------\n",
+    "        filename: str\n",
+    "                Name of file containing data\n",
+    "                Add ../ if in a higher directory\n",
+    "        sheetnames: list or int\n",
+    "                Location of sheets to be analysed\n",
+    "                eg. 0 for the first sheet, \n",
+    "                [1,2] for the second and third sheets\n",
+    "        taxa: str, default 'all'\n",
+    "                Taxanomic level for investigation\n",
+    "                Default 'all' will return microbiome dataframe containing all\n",
+    "                taxanomic levels\n",
+    "                Options:\n",
+    "                - phylum\n",
+    "                - class\n",
+    "                - order\n",
+    "                - family\n",
+    "                - genus\n",
+    "                - species\n",
+    "        \n",
+    "        Returns\n",
+    "        -------\n",
+    "        Tuple of DataFrame\n",
+    "                Two dataframes containing microbiome data and miRNA data, respectively\n",
+    "        '''\n",
+    "        if taxa == 'phylum':\n",
+    "            reg_ex = '^.*(p__){1}((?!.+c__).)*$'\n",
+    "        elif taxa == 'class':\n",
+    "            reg_ex = '^.*(c__){1}((?!.+o__).)*$'\n",
+    "        elif taxa == 'order':\n",
+    "            reg_ex = '^.*(o__){1}((?!.+f__).)*$'\n",
+    "        elif taxa == 'family':\n",
+    "            reg_ex = '^.*(f__){1}((?!.+g__).)*$'\n",
+    "        elif taxa == 'genus':\n",
+    "            reg_ex = '^.*(g__){1}((?!.+s__).)*$'\n",
+    "        elif taxa == 'species':\n",
+    "            reg_ex = '^.*(s__){1}.*'\n",
+    "        else:\n",
+    "            reg_ex = '^.*'\n",
+    "        mb_temp, df_mr = pd.read_excel(filename, \n",
+    "                                       sheet_name = sheetname, \n",
+    "                                       header = 0, \n",
+    "                                       index_col = index_col, \n",
+    "                                       usecols = usecols, \n",
+    "                                       engine = \"openpyxl\", \n",
+    "                                       nrows = nrows).values()\n",
+    "        df_mb = mb_temp.filter(regex=reg_ex, axis = 1)\n",
+    "        return df_mb, df_mr\n",
+    "    \n",
+    "    def spearman_r(self):\n",
+    "        '''\n",
+    "        microbiome: pandas DataFrame with microbiome data\n",
+    "        mirna: pandas DataFrame with miRNA data\n",
+    "        diet: BD, FS, FSO, or SDG diets\n",
+    "        header: axis labels for spearman's correlation matrix\n",
+    "        '''\n",
+    "        header = self.microbiome.columns.union(self.mirna.columns, sort = False)\n",
+    "        \n",
+    "        for diet in self.diet:\n",
+    "            #pd.concat([cecum.microbiome, cecum.mirna], axis=1).xs(diet, level='Group').corr(method='spearman')\n",
+    "            # Get Spearman correlation\n",
+    "            self.spearman = stats.spearmanr(a=self.microbiome.xs(diet, level='Group').transpose().to_numpy(), \n",
+    "                                            b=self.mirna.xs(diet, level='Group').transpose().to_numpy(), \n",
+    "                                            axis = 1, nan_policy = 'propagate')\n",
+    "            # Convert np correlations to pandas\n",
+    "            r = pd.DataFrame(np.triu(self.spearman.correlation), index = header, columns = header)\n",
+    "            p = pd.DataFrame(np.triu(self.spearman.pvalue), index = header, columns = header)\n",
+    "            # Save to object\n",
+    "            self.cor['spearman'].update({diet: {'val': r, 'pval': p}})\n",
+    "            \n",
+    "        return r, p\n",
+    "\n",
+    "    def kendall_t(self, microbiome=None, mirna=None):\n",
+    "        if microbiome is None:\n",
+    "            microbiome = self.microbiome\n",
+    "            print(\"Assigning self to microbiome\")\n",
+    "        if mirna is None:\n",
+    "            mirna = self.mirna\n",
+    "            print(\"Assigning self to mirna\")\n",
+    "        \n",
+    "        for diet in self.diet:\n",
+    "            print(\"Getting Kendall correlation for \"+diet+\" diet...\")\n",
+    "        # Convert dataframes to ranks then numpy for use in scipy kendalltau\n",
+    "            microbiome_diet = microbiome.xs(diet, level='Group').rank(axis=0, method='min').transpose().to_numpy()\n",
+    "            mirna_diet = mirna.xs(diet, level='Group').rank(axis=0, method='min').transpose().to_numpy()\n",
+    "\n",
+    "            t_value = pd.DataFrame(columns=mirna.columns, index=microbiome.columns)\n",
+    "            p_value = pd.DataFrame(columns=mirna.columns, index=microbiome.columns)\n",
+    "\n",
+    "            for i, taxa in enumerate(microbiome_diet):\n",
+    "                for j, micro in enumerate(mirna_diet):\n",
+    "                    t_value.iat[i,j], p_value.iat[i,j] = stats.kendalltau(taxa, micro)\n",
+    "            self.cor['kendall'].update({diet: {'val': t_value, 'pval': p_value}})\n",
+    "        return t_value, p_value\n",
+    "    \n",
+    "    def get_significant_correlations(self, threshold=0.05, corr=None, correlation='kendall', correction=True):\n",
+    "        \n",
+    "        for diet in self.diet:\n",
+    "            #Change correlation matrix to table of pairs & correlation values\n",
+    "            corr = self.cor[correlation][diet]['val'].stack().reset_index()\n",
+    "            corr.columns = ['factor_1', 'factor_2', 'correlation']\n",
+    "            pval = self.cor[correlation][diet]['pval'].stack().reset_index()\n",
+    "            pval.columns = ['factor_1', 'factor_2', 'pval']\n",
+    "            merged = pd.merge(corr, pval, how='inner', on = ['factor_1', 'factor_2'])\n",
+    "\n",
+    "            #FDR - Benjamini-Hochberg Correction\n",
+    "            if correction:\n",
+    "                #Filter on no NaN correlations, NaN pvals, no self-correlation\n",
+    "                merged = merged.loc[(merged['correlation'] != None) & (merged['pval'] != None)\n",
+    "                               & (merged['factor_1'] != merged['factor_2'])]\n",
+    "                #Ensure correlation is between bacteria & miRNA only - no bac bac or mir mir\n",
+    "                merged = merged[merged['factor_1'].str.contains(\"k__\")]\n",
+    "                merged = merged[~merged['factor_2'].str.contains(\"k__\")]\n",
+    "                #Rank p-values for BH correction\n",
+    "                ranked_p = merged.loc[:, 'pval'].rank(method='max').sort_values()\n",
+    "                merged = pd.merge(merged, ranked_p, how='inner', left_index = True, right_index = True).sort_values('pval_x')\n",
+    "                \n",
+    "                merged['q_val'] = merged['pval_x'] * merged.shape[0] / ranked_p\n",
+    "                merged['q_val'] = merged['q_val'].apply(lambda x: 1 if x > 1 else x)\n",
+    "                \n",
+    "                #Temporary, currently no corrected correlations below threshold\n",
+    "                #merged = merged.loc[merged['pval_x'] <= threshold]\n",
+    "\n",
+    "            #Uncorrected correlations, p-value < threshold\n",
+    "            else: \n",
+    "                #Filter for 0 correlation, p-value < threshold, no self-correlation\n",
+    "                merged = merged.loc[(merged['correlation'] != 0) & (merged['pval'] < threshold)\n",
+    "                               & (merged['factor_1'] != merged['factor_2'])]\n",
+    "                merged = merged[merged['factor_1'].str.contains(\"k__\")]\n",
+    "                merged = merged[~merged['factor_2'].str.contains(\"k__\")].sort_values('pval')\n",
+    "                merged = merged.loc[merged['pval'] <= threshold]\n",
+    "\n",
+    "            self.sig_cor[correlation].update({diet: merged})\n",
+    "        \n",
+    "        return merged\n",
+    "    \n",
+    "    def export(self, sheetname, correlation='kendall'):\n",
+    "        with pd.ExcelWriter(sheetname) as writer:\n",
+    "            for diet in self.sig_cor[correlation]:\n",
+    "                self.sig_cor[correlation][diet].to_excel(writer, sheet_name=diet)\n",
+    "                \n",
+    "                print(\"Exporting \" + diet + \"...\")\n",
+    "        return\n",
+    "    \n",
+    "    def visualize(self, correlations):\n",
+    "        #Visualize non-significant & significant but correlated\n",
+    "        #Visualize significant and correlated\n",
+    "        matrix = cor[['factor_1', 'factor_2', 'correlation']].pivot(index = 'factor_1',\n",
+    "                                                                   columns = 'factor_2')\n",
+    "        return"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Load data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "#Uncorrected data\n",
+    "cecum = Correlation('../Data/cecum_data.xlsx', [1,2], 'genus', index_col = [0,1,2], usecols = \"A:C,F:PG\", nrows=21) \n",
+    "# Refer to https://www.ncbi.nlm.nih.gov/sra for microbiota data \n",
+    "# Refer to https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE193847 for miRNA data \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Corrected data using bdfs, fsfso, fssdg filtered sheet\n",
+    "cecum_unfiltered = Correlation ('../Data/dw20220302-3.xlsx', ['unfiltered', 'mirna'], 'genus', index_col = [0,1], nrows=22)\n",
+    "cecum_bdfs = Correlation ('../Data/dw20220302-3.xlsx', ['bdfs', 'mirna'], 'genus', index_col = [0,1], nrows=22)\n",
+    "cecum_fsfso = Correlation ('../Data/dw20220302-3.xlsx', ['fsfso', 'mirna'], 'genus', index_col = [0,1], nrows=22)\n",
+    "cecum_fssdg = Correlation ('../Data/dw20220302-3.xlsx', ['fssdg', 'mirna'], 'genus', index_col = [0,1], nrows=22)\n",
+    "# Refer to https://www.ncbi.nlm.nih.gov/sra for microbiota data \n",
+    "# Refer to https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE193847 for miRNA data \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Get Kendall correlations"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Correlation without transformations/corrections"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.kendall_t()\n",
+    "sig = cecum.get_significant_correlations(0.05, correlation='kendall', correction = True)\n",
+    "##Example pull to get pvalue of flax seed oil diet\n",
+    "#cecum.correlations['spearman']['FSO']['pval']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.export('../Results/correlations/dw20210601-1.xlsx')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.kendall_t(microbiome=cecum.microbiome.loc[:,~(cecum.microbiome == 0).all()])\n",
+    "cecum.get_significant_correlations(0.05, correlation='kendall', correction = True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.export('dw20210601-2.xlsx')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Correlation with log-ratio transformation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Figure out which taxa/genus is present in all 4 diets so know which to normalize to"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.microbiome.drop(cecum.microbiome.columns[(cecum.microbiome == 0).any()], axis = 1)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Do correlations with log-transformed data (lactobacillus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# Choose Lactobacillus as genus to normalize to; I checked where it was\n",
+    "log_lacto = np.log(cecum.microbiome.drop(cecum.microbiome.columns[(cecum.microbiome==0).any()], axis=1).iloc[:,6])\n",
+    "# Get log of data\n",
+    "log_data = np.log(cecum.microbiome)\n",
+    "# Normalize to lactobacillus\n",
+    "log_normal = log_data.sub(log_lacto, axis=0)\n",
+    "# Kendall correlation\n",
+    "log_kendall = cecum.kendall_t(microbiome=log_normal)\n",
+    "lacto_sig_log_kendall = cecum.get_significant_correlations(0.05, correlation='kendall', correction=True)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.export(\"log_transform_kendall_corr.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Do correlations with log-transformed data (averaged present in all microbiome)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# Average relative abundance of taxa present in all 4 diets\n",
+    "log_average_comp = np.log(cecum.microbiome.drop(cecum.microbiome.columns[(cecum.microbiome == 0).any()], axis = 1).mean(axis=1))\n",
+    "# Get log of data\n",
+    "log_data = np.log(cecum.microbiome)\n",
+    "# Normalize to average\n",
+    "log_normal = log_data.sub(log_average_comp, axis=0)\n",
+    "# Kendall correlation\n",
+    "log_kendall = cecum.kendall_t(microbiome=log_normal)\n",
+    "sig_log_kendall = cecum.get_significant_correlations(0.05, correlation='kendall', correction=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.export(\"average_log_transform_kendall_corr.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Set up copy number correction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def copy_correction(data, export=False):\n",
+    "    # Get all genera that are present\n",
+    "    existing_genera = data.loc[:,~(data == 0).all()]\n",
+    "\n",
+    "    # Import rrnDB database\n",
+    "    copy_number_data = pd.read_csv(\"../Data/rrnDB-5.7_pantaxa_stats_NCBI.tsv\", \n",
+    "                                   sep='\\t', \n",
+    "                                   engine='python')\n",
+    "\n",
+    "    # Get last available taxa\n",
+    "    taxa_copy_number = pd.DataFrame(index = existing_genera.columns)\n",
+    "    # Clean data to get copy number    \n",
+    "    taxa_copy_number['rank'] = taxa_copy_number.index.to_series().apply(max_taxa)\n",
+    "    taxa_copy_number['name'] = taxa_copy_number.index.to_series().apply(lambda x: get_name(x, taxa_copy_number.loc[x]['rank']))\n",
+    "\n",
+    "    # Get copy number from database\n",
+    "    taxa_copy_number = taxa_copy_number.reset_index().merge(copy_number_data,how='left').set_index('index')\n",
+    "    print(\"Getting initial set of copy-counts...\")\n",
+    "\n",
+    "\n",
+    "    # Get all missing copy numbers by going up a taxanomic level in database\n",
+    "    while not (taxa_copy_number.loc[pd.isna(taxa_copy_number['mean'])].empty):\n",
+    "        missing_data = taxa_copy_number.loc[pd.isna(taxa_copy_number['mean'])].rename_axis(None, axis=0)\n",
+    "        taxa_copy_number.loc[pd.isna(taxa_copy_number['mean'])] = get_previous(missing_data, copy_number_data)\n",
+    "        print(\"Getting missing mean copy-counts...\")\n",
+    "\n",
+    "    print(\"All missing mean copy-counts retreived\")\n",
+    "\n",
+    "    print(taxa_copy_number)\n",
+    "    # Get corrected abundance: column of one taxa (mice is rows, taxa is column) * copy number for mice / mean copy number for taxa\n",
+    "    corrected_abundance = existing_genera.columns.to_series().apply(lambda x: existing_genera.loc[:,x] / taxa_copy_number.loc[x]['mean']) \n",
+    "    corrected_abundance = corrected_abundance.transpose()\n",
+    "    corrected_abundance = corrected_abundance.div(corrected_abundance.sum(axis=1), axis=0)\n",
+    "\n",
+    "    if export:\n",
+    "        # Export non-zero genera to excel\n",
+    "        corrected_abundance.to_excel(export)\n",
+    "    return corrected_abundance\n",
+    "\n",
+    "\n",
+    "\n",
+    "# Find the last one with no \"x__|\"\n",
+    "def max_taxa(name):\n",
+    "    name = pd.Series(name)\n",
+    "    if name.str.contains(\"^.*(s__){1}.+$\").bool():\n",
+    "        return \"species\"\n",
+    "    if name.str.contains(\"^.*(g__){1}.+$\").bool() and not name.str.contains(\"^.*(g__\\|){1}.+$\").bool():\n",
+    "        return \"genus\"\n",
+    "    if name.str.contains(\"^.*(f__){1}.+$\").bool() and not name.str.contains(\"^.*(f__\\|){1}.+$\").bool():\n",
+    "        return \"family\"\n",
+    "    if name.str.contains(\"^.*(o__){1}.+$\").bool() and not name.str.contains(\"^.*(o__\\|){1}.+$\").bool():\n",
+    "        return \"order\"\n",
+    "    if name.str.contains(\"^.*(c__){1}.+$\").bool() and not name.str.contains(\"^.*(c__\\|){1}.+$\").bool():\n",
+    "        return \"class\"\n",
+    "    if name.str.contains(\"^.*(p__){1}.+$\").bool() and not name.str.contains(\"^.*(p__\\|){1}.+$\").bool():\n",
+    "        return \"phylum\"\n",
+    "    return \"kingdom\"\n",
+    "\n",
+    "def get_name(name, taxon):\n",
+    "    ''' \n",
+    "    Gets taxon name from 16S data based on desired taxonomy level\n",
+    "    \n",
+    "    eg. input: k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Bacteroidaceae|g__Bacteroides, genus\n",
+    "        output: 'Bacteroides' \n",
+    "            \n",
+    "    '''\n",
+    "    taxa_map = {'kingdom': 'k__', 'phylum': 'p__', 'class': 'c__', 'order': 'o__', 'family': 'f__', 'genus': 'g__', 'species': 's__'}\n",
+    "    # Find index of desired taxon label (eg. for the genus level, where is 'g__'?)\n",
+    "    index = name.rfind(taxa_map[taxon])\n",
+    "    name = name[index:]\n",
+    "    # Check for | in the name \n",
+    "    if name.rfind('|') == -1:\n",
+    "        return name[len(taxa_map[taxon]):]\n",
+    "    else:\n",
+    "        name = name[:name.find('|')]\n",
+    "        return name[len(taxa_map[taxon]):]\n",
+    "\n",
+    "def get_previous(missing_data, copy_number_data):\n",
+    "    # Get previous taxon\n",
+    "    missing_data['rank'] = missing_data['rank'].map({'species': 'genus', 'genus': 'family', 'family': 'order', 'order': 'class', 'class': 'phylum', 'phylum': 'kingdom'})\n",
+    "    missing_data['name'] = missing_data.index.to_series().apply(lambda x: get_name(x, missing_data.loc[x]['rank']))\n",
+    "    # Get copy-count information for previous taxon\n",
+    "    new_data = missing_data.loc[:,['rank', 'name']].reset_index().merge(copy_number_data,how='left', on=['rank', 'name']).set_index('index')\n",
+    "    return new_data\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Correlation with qPCR correction"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### rrnDB correction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "#Do copy-number correction \n",
+    "cecum_raw = pd.read_excel(\"../Data/cecum_data.xlsx\", header=0, index_col=0, sheet_name = \"Cecum-used for miRNA analysis\", usecols = \"A,F:PG\", nrows=21)\n",
+    "reg_ex = '^.*(g__){1}((?!.+s__).)*$'\n",
+    "cecum = cecum_raw.filter(regex=reg_ex, axis = 1)\n",
+    "corrected = copy_correction(cecum)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "corrected.to_excel(\"../Data/dw20220302-3.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Get correlations"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "#Kendall correlation for corrected relative abundance\n",
+    "cecum.kendall_t(microbiome=corrected_abundance)\n",
+    "sig = cecum.get_significant_correlations(0.05, correlation='kendall', correction = True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "sig.loc[sig['q_val'] < 0.8]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [],
+   "source": [
+    "cecum.export(\"../Results/dw20210603-4.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.kendall_t(microbiome=absolute_abundance)\n",
+    "cecum.get_significant_correlations(0.05, correlation='kendall', correction = True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Get Spearman correlations"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.7/site-packages/numpy/lib/function_base.py:2534: RuntimeWarning: invalid value encountered in true_divide\n",
+      "  c /= stddev[:, None]\n",
+      "/usr/local/lib/python3.7/site-packages/numpy/lib/function_base.py:2535: RuntimeWarning: invalid value encountered in true_divide\n",
+      "  c /= stddev[None, :]\n",
+      "/usr/local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:901: RuntimeWarning: invalid value encountered in greater\n",
+      "  return (a < x) & (x < b)\n",
+      "/usr/local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:901: RuntimeWarning: invalid value encountered in less\n",
+      "  return (a < x) & (x < b)\n",
+      "/usr/local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:1892: RuntimeWarning: invalid value encountered in less_equal\n",
+      "  cond2 = cond0 & (x <= _a)\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "(                                                    k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                1.0                                              \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.0                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                              \n",
+       " ...                                                                                               ...                                              \n",
+       " miR-93                                                                                            0.0                                              \n",
+       " miR-96                                                                                            0.0                                              \n",
+       " miR-98                                                                                            0.0                                              \n",
+       " miR-99a                                                                                           0.0                                              \n",
+       " miR-99b                                                                                           0.0                                              \n",
+       " \n",
+       "                                                     k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Adlercreutzia  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.6                                                           \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                1.0                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                                           \n",
+       " ...                                                                                               ...                                                           \n",
+       " miR-93                                                                                            0.0                                                           \n",
+       " miR-96                                                                                            0.0                                                           \n",
+       " miR-98                                                                                            0.0                                                           \n",
+       " miR-99a                                                                                           0.0                                                           \n",
+       " miR-99b                                                                                           0.0                                                           \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Bacteroidaceae|g__Bacteroides  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.2                                               \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.5                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                1.0                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                               \n",
+       " ...                                                                                               ...                                               \n",
+       " miR-93                                                                                            0.0                                               \n",
+       " miR-96                                                                                            0.0                                               \n",
+       " miR-98                                                                                            0.0                                               \n",
+       " miR-99a                                                                                           0.0                                               \n",
+       " miR-99b                                                                                           0.0                                               \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Porphyromonadaceae|g__Parabacteroides  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.2                                                       \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.4                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.2                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                1.0                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                                       \n",
+       " ...                                                                                               ...                                                       \n",
+       " miR-93                                                                                            0.0                                                       \n",
+       " miR-96                                                                                            0.0                                                       \n",
+       " miR-98                                                                                            0.0                                                       \n",
+       " miR-99a                                                                                           0.0                                                       \n",
+       " miR-99b                                                                                           0.0                                                       \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Rikenellaceae|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                               -0.2                                   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.4                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.8                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.2                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                1.0                                   \n",
+       " ...                                                                                               ...                                   \n",
+       " miR-93                                                                                            0.0                                   \n",
+       " miR-96                                                                                            0.0                                   \n",
+       " miR-98                                                                                            0.0                                   \n",
+       " miR-99a                                                                                           0.0                                   \n",
+       " miR-99b                                                                                           0.0                                   \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Rikenellaceae|g__Alistipes  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.707107                                            \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.353553                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.000000                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.707107                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.000000                                            \n",
+       " ...                                                                                               ...                                            \n",
+       " miR-93                                                                                       0.000000                                            \n",
+       " miR-96                                                                                       0.000000                                            \n",
+       " miR-98                                                                                       0.000000                                            \n",
+       " miR-99a                                                                                      0.000000                                            \n",
+       " miR-99b                                                                                      0.000000                                            \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__[Paraprevotellaceae]|g__Paraprevotella  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.5                                                        \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.9                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.8                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.3                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.7                                                        \n",
+       " ...                                                                                               ...                                                        \n",
+       " miR-93                                                                                            0.0                                                        \n",
+       " miR-96                                                                                            0.0                                                        \n",
+       " miR-98                                                                                            0.0                                                        \n",
+       " miR-99a                                                                                           0.0                                                        \n",
+       " miR-99b                                                                                           0.0                                                        \n",
+       " \n",
+       "                                                     k__Bacteria|p__Cyanobacteria|c__4C0d-2|o__YS2|f__|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.2       \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.5       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                1.0       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.2       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.8       \n",
+       " ...                                                                                               ...       \n",
+       " miR-93                                                                                            0.0       \n",
+       " miR-96                                                                                            0.0       \n",
+       " miR-98                                                                                            0.0       \n",
+       " miR-99a                                                                                           0.0       \n",
+       " miR-99b                                                                                           0.0       \n",
+       " \n",
+       "                                                     k__Bacteria|p__Deferribacteres|c__Deferribacteres|o__Deferribacterales|f__Deferribacteraceae|g__Mucispirillum  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                               -0.6                                                               \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                               -0.7                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.9                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.0                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.6                                                               \n",
+       " ...                                                                                               ...                                                               \n",
+       " miR-93                                                                                            0.0                                                               \n",
+       " miR-96                                                                                            0.0                                                               \n",
+       " miR-98                                                                                            0.0                                                               \n",
+       " miR-99a                                                                                           0.0                                                               \n",
+       " miR-99b                                                                                           0.0                                                               \n",
+       " \n",
+       "                                                     k__Bacteria|p__Firmicutes|c__Bacilli|o__Bacillales|f__Staphylococcaceae|g__Staphylococcus  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                                0.0                                           \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                               -0.2                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.9                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                                0.6                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                               -0.6                                           \n",
+       " ...                                                                                               ...                                           \n",
+       " miR-93                                                                                            0.0                                           \n",
+       " miR-96                                                                                            0.0                                           \n",
+       " miR-98                                                                                            0.0                                           \n",
+       " miR-99a                                                                                           0.0                                           \n",
+       " miR-99b                                                                                           0.0                                           \n",
+       " \n",
+       "                                                     ...  miR-762  miR-7a  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  ...      0.2    -0.8   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  ...      0.5    -0.6   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...      1.0    -0.7   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...     -0.2     0.2   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...      0.8    -0.2   \n",
+       " ...                                                 ...      ...     ...   \n",
+       " miR-93                                              ...      0.0     0.0   \n",
+       " miR-96                                              ...      0.0     0.0   \n",
+       " miR-98                                              ...      0.0     0.0   \n",
+       " miR-99a                                             ...      0.0     0.0   \n",
+       " miR-99b                                             ...      0.0     0.0   \n",
+       " \n",
+       "                                                     miR-804  miR-872  miR-92a  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...      0.1      0.2     -0.6   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...      0.7     -0.4      0.0   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...     -0.1     -0.8      0.0   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...      0.5     -0.2      0.6   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...      0.1     -1.0      0.6   \n",
+       " ...                                                     ...      ...      ...   \n",
+       " miR-93                                                  0.0      0.0      0.0   \n",
+       " miR-96                                                  0.0      0.0      0.0   \n",
+       " miR-98                                                  0.0      0.0      0.0   \n",
+       " miR-99a                                                 0.0      0.0      0.0   \n",
+       " miR-99b                                                 0.0      0.0      0.0   \n",
+       " \n",
+       "                                                     miR-93  miR-96  miR-98  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...     0.9    -0.5     0.7   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...     0.2    -0.7     0.4   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...    -0.1     0.1     0.3   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...     0.1    -0.9    -0.5   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...    -0.5    -0.1    -0.3   \n",
+       " ...                                                    ...     ...     ...   \n",
+       " miR-93                                                 1.0    -0.3     0.6   \n",
+       " miR-96                                                 0.0     1.0     0.1   \n",
+       " miR-98                                                 0.0     0.0     1.0   \n",
+       " miR-99a                                                0.0     0.0     0.0   \n",
+       " miR-99b                                                0.0     0.0     0.0   \n",
+       " \n",
+       "                                                     miR-99a  miR-99b  \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...      0.7      0.7  \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...     -0.1      0.4  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...     -0.2      0.3  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...     -0.3     -0.5  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...     -0.7     -0.3  \n",
+       " ...                                                     ...      ...  \n",
+       " miR-93                                                  0.9      0.6  \n",
+       " miR-96                                                  0.1      0.1  \n",
+       " miR-98                                                  0.7      1.0  \n",
+       " miR-99a                                                 1.0      0.7  \n",
+       " miR-99b                                                 0.0      1.0  \n",
+       " \n",
+       " [287 rows x 287 columns],\n",
+       "                                                     k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       1.404265e-24                                              \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       0.000000e+00                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                              \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                              \n",
+       " ...                                                                                               ...                                              \n",
+       " miR-93                                                                                   0.000000e+00                                              \n",
+       " miR-96                                                                                   0.000000e+00                                              \n",
+       " miR-98                                                                                   0.000000e+00                                              \n",
+       " miR-99a                                                                                  0.000000e+00                                              \n",
+       " miR-99b                                                                                  0.000000e+00                                              \n",
+       " \n",
+       "                                                     k__Bacteria|p__Actinobacteria|c__Coriobacteriia|o__Coriobacteriales|f__Coriobacteriaceae|g__Adlercreutzia  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       2.847570e-01                                                           \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       1.404265e-24                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                                           \n",
+       " ...                                                                                               ...                                                           \n",
+       " miR-93                                                                                   0.000000e+00                                                           \n",
+       " miR-96                                                                                   0.000000e+00                                                           \n",
+       " miR-98                                                                                   0.000000e+00                                                           \n",
+       " miR-99a                                                                                  0.000000e+00                                                           \n",
+       " miR-99b                                                                                  0.000000e+00                                                           \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Bacteroidaceae|g__Bacteroides  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       7.470601e-01                                               \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       3.910022e-01                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.404265e-24                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                               \n",
+       " ...                                                                                               ...                                               \n",
+       " miR-93                                                                                   0.000000e+00                                               \n",
+       " miR-96                                                                                   0.000000e+00                                               \n",
+       " miR-98                                                                                   0.000000e+00                                               \n",
+       " miR-99a                                                                                  0.000000e+00                                               \n",
+       " miR-99b                                                                                  0.000000e+00                                               \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Porphyromonadaceae|g__Parabacteroides  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       7.470601e-01                                                       \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       5.046316e-01                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       7.470601e-01                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.404265e-24                                                       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       0.000000e+00                                                       \n",
+       " ...                                                                                               ...                                                       \n",
+       " miR-93                                                                                   0.000000e+00                                                       \n",
+       " miR-96                                                                                   0.000000e+00                                                       \n",
+       " miR-98                                                                                   0.000000e+00                                                       \n",
+       " miR-99a                                                                                  0.000000e+00                                                       \n",
+       " miR-99b                                                                                  0.000000e+00                                                       \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Rikenellaceae|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       7.470601e-01                                   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       5.046316e-01                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.040880e-01                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       7.470601e-01                                   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.404265e-24                                   \n",
+       " ...                                                                                               ...                                   \n",
+       " miR-93                                                                                   0.000000e+00                                   \n",
+       " miR-96                                                                                   0.000000e+00                                   \n",
+       " miR-98                                                                                   0.000000e+00                                   \n",
+       " miR-99a                                                                                  0.000000e+00                                   \n",
+       " miR-99b                                                                                  0.000000e+00                                   \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__Rikenellaceae|g__Alistipes  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.181690                                            \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.559404                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           1.000000                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.181690                                            \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           1.000000                                            \n",
+       " ...                                                                                               ...                                            \n",
+       " miR-93                                                                                       0.000000                                            \n",
+       " miR-96                                                                                       0.000000                                            \n",
+       " miR-98                                                                                       0.000000                                            \n",
+       " miR-99a                                                                                      0.000000                                            \n",
+       " miR-99b                                                                                      0.000000                                            \n",
+       " \n",
+       "                                                     k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__Bacteroidales|f__[Paraprevotellaceae]|g__Paraprevotella  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.391002                                                        \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.037386                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.104088                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.623838                                                        \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.188120                                                        \n",
+       " ...                                                                                               ...                                                        \n",
+       " miR-93                                                                                       0.000000                                                        \n",
+       " miR-96                                                                                       0.000000                                                        \n",
+       " miR-98                                                                                       0.000000                                                        \n",
+       " miR-99a                                                                                      0.000000                                                        \n",
+       " miR-99b                                                                                      0.000000                                                        \n",
+       " \n",
+       "                                                     k__Bacteria|p__Cyanobacteria|c__4C0d-2|o__YS2|f__|g__  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       7.470601e-01       \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                       3.910022e-01       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.404265e-24       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       7.470601e-01       \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                       1.040880e-01       \n",
+       " ...                                                                                               ...       \n",
+       " miR-93                                                                                   0.000000e+00       \n",
+       " miR-96                                                                                   0.000000e+00       \n",
+       " miR-98                                                                                   0.000000e+00       \n",
+       " miR-99a                                                                                  0.000000e+00       \n",
+       " miR-99b                                                                                  0.000000e+00       \n",
+       " \n",
+       "                                                     k__Bacteria|p__Deferribacteres|c__Deferribacteres|o__Deferribacterales|f__Deferribacteraceae|g__Mucispirillum  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.284757                                                               \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.188120                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.037386                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           1.000000                                                               \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.284757                                                               \n",
+       " ...                                                                                               ...                                                               \n",
+       " miR-93                                                                                       0.000000                                                               \n",
+       " miR-96                                                                                       0.000000                                                               \n",
+       " miR-98                                                                                       0.000000                                                               \n",
+       " miR-99a                                                                                      0.000000                                                               \n",
+       " miR-99b                                                                                      0.000000                                                               \n",
+       " \n",
+       "                                                     k__Bacteria|p__Firmicutes|c__Bacilli|o__Bacillales|f__Staphylococcaceae|g__Staphylococcus  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           1.000000                                           \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...                                           0.747060                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.037386                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.284757                                           \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...                                           0.284757                                           \n",
+       " ...                                                                                               ...                                           \n",
+       " miR-93                                                                                       0.000000                                           \n",
+       " miR-96                                                                                       0.000000                                           \n",
+       " miR-98                                                                                       0.000000                                           \n",
+       " miR-99a                                                                                      0.000000                                           \n",
+       " miR-99b                                                                                      0.000000                                           \n",
+       " \n",
+       "                                                     ...       miR-762  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  ...  7.470601e-01   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  ...  3.910022e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...  1.404265e-24   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...  7.470601e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  ...  1.040880e-01   \n",
+       " ...                                                 ...           ...   \n",
+       " miR-93                                              ...  0.000000e+00   \n",
+       " miR-96                                              ...  0.000000e+00   \n",
+       " miR-98                                              ...  0.000000e+00   \n",
+       " miR-99a                                             ...  0.000000e+00   \n",
+       " miR-99b                                             ...  0.000000e+00   \n",
+       " \n",
+       "                                                       miR-7a   miR-804  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  0.104088  0.872889   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  0.284757  0.188120   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  0.188120  0.872889   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  0.747060  0.391002   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  0.747060  0.872889   \n",
+       " ...                                                      ...       ...   \n",
+       " miR-93                                              0.000000  0.000000   \n",
+       " miR-96                                              0.000000  0.000000   \n",
+       " miR-98                                              0.000000  0.000000   \n",
+       " miR-99a                                             0.000000  0.000000   \n",
+       " miR-99b                                             0.000000  0.000000   \n",
+       " \n",
+       "                                                          miR-872   miR-92a  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  7.470601e-01  0.284757   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  5.046316e-01  1.000000   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  1.040880e-01  1.000000   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  7.470601e-01  0.284757   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  1.404265e-24  0.284757   \n",
+       " ...                                                          ...       ...   \n",
+       " miR-93                                              0.000000e+00  0.000000   \n",
+       " miR-96                                              0.000000e+00  0.000000   \n",
+       " miR-98                                              0.000000e+00  0.000000   \n",
+       " miR-99a                                             0.000000e+00  0.000000   \n",
+       " miR-99b                                             0.000000e+00  0.000000   \n",
+       " \n",
+       "                                                           miR-93  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  3.738607e-02   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  7.470601e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  8.728886e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  8.728886e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  3.910022e-01   \n",
+       " ...                                                          ...   \n",
+       " miR-93                                              1.404265e-24   \n",
+       " miR-96                                              0.000000e+00   \n",
+       " miR-98                                              0.000000e+00   \n",
+       " miR-99a                                             0.000000e+00   \n",
+       " miR-99b                                             0.000000e+00   \n",
+       " \n",
+       "                                                           miR-96  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  3.910022e-01   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  1.881204e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  8.728886e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  3.738607e-02   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  8.728886e-01   \n",
+       " ...                                                          ...   \n",
+       " miR-93                                              6.238377e-01   \n",
+       " miR-96                                              1.404265e-24   \n",
+       " miR-98                                              0.000000e+00   \n",
+       " miR-99a                                             0.000000e+00   \n",
+       " miR-99b                                             0.000000e+00   \n",
+       " \n",
+       "                                                           miR-98  \\\n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  1.881204e-01   \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  5.046316e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  6.238377e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  3.910022e-01   \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  6.238377e-01   \n",
+       " ...                                                          ...   \n",
+       " miR-93                                              2.847570e-01   \n",
+       " miR-96                                              8.728886e-01   \n",
+       " miR-98                                              1.404265e-24   \n",
+       " miR-99a                                             0.000000e+00   \n",
+       " miR-99b                                             0.000000e+00   \n",
+       " \n",
+       "                                                          miR-99a       miR-99b  \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  1.881204e-01  1.881204e-01  \n",
+       " k__Bacteria|p__Actinobacteria|c__Coriobacteriia...  8.728886e-01  5.046316e-01  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  7.470601e-01  6.238377e-01  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  6.238377e-01  3.910022e-01  \n",
+       " k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o__...  1.881204e-01  6.238377e-01  \n",
+       " ...                                                          ...           ...  \n",
+       " miR-93                                              3.738607e-02  2.847570e-01  \n",
+       " miR-96                                              8.728886e-01  8.728886e-01  \n",
+       " miR-98                                              1.881204e-01  1.404265e-24  \n",
+       " miR-99a                                             1.404265e-24  1.881204e-01  \n",
+       " miR-99b                                             0.000000e+00  1.404265e-24  \n",
+       " \n",
+       " [287 rows x 287 columns])"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cecum_unfiltered.spearman_r()\n",
+    "cecum_bdfs.spearman_r()\n",
+    "cecum_fsfso.spearman_r()\n",
+    "cecum_fssdg.spearman_r()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>factor_1</th>\n",
+       "      <th>factor_2</th>\n",
+       "      <th>correlation</th>\n",
+       "      <th>pval_x</th>\n",
+       "      <th>pval_y</th>\n",
+       "      <th>q_val</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>7073</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...</td>\n",
+       "      <td>miR-28</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.404265e-24</td>\n",
+       "      <td>163.0</td>\n",
+       "      <td>9.717861e-23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3238</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...</td>\n",
+       "      <td>miR-129-3p</td>\n",
+       "      <td>-1.0</td>\n",
+       "      <td>1.404265e-24</td>\n",
+       "      <td>163.0</td>\n",
+       "      <td>9.717861e-23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3209</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...</td>\n",
+       "      <td>let-7d</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.404265e-24</td>\n",
+       "      <td>163.0</td>\n",
+       "      <td>9.717861e-23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12221</th>\n",
+       "      <td>k__Bacteria|p__Proteobacteria|c__Betaproteobac...</td>\n",
+       "      <td>miR-214</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.404265e-24</td>\n",
+       "      <td>163.0</td>\n",
+       "      <td>9.717861e-23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7109</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...</td>\n",
+       "      <td>miR-350</td>\n",
+       "      <td>1.0</td>\n",
+       "      <td>1.404265e-24</td>\n",
+       "      <td>163.0</td>\n",
+       "      <td>9.717861e-23</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3557</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...</td>\n",
+       "      <td>miR-181b+miR-181d</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>11280.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1599</th>\n",
+       "      <td>k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o_...</td>\n",
+       "      <td>miR-2134</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>11280.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5005</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...</td>\n",
+       "      <td>miR-190b</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>11280.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7318</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...</td>\n",
+       "      <td>miR-1965</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>11280.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6414</th>\n",
+       "      <td>k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...</td>\n",
+       "      <td>miR-146b</td>\n",
+       "      <td>0.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "      <td>11280.0</td>\n",
+       "      <td>1.000000e+00</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>11280 rows × 6 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                                factor_1           factor_2  \\\n",
+       "7073   k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...             miR-28   \n",
+       "3238   k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...         miR-129-3p   \n",
+       "3209   k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...             let-7d   \n",
+       "12221  k__Bacteria|p__Proteobacteria|c__Betaproteobac...            miR-214   \n",
+       "7109   k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...            miR-350   \n",
+       "...                                                  ...                ...   \n",
+       "3557   k__Bacteria|p__Firmicutes|c__Bacilli|o__Lactob...  miR-181b+miR-181d   \n",
+       "1599   k__Bacteria|p__Bacteroidetes|c__Bacteroidia|o_...           miR-2134   \n",
+       "5005   k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...           miR-190b   \n",
+       "7318   k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...           miR-1965   \n",
+       "6414   k__Bacteria|p__Firmicutes|c__Clostridia|o__Clo...           miR-146b   \n",
+       "\n",
+       "       correlation        pval_x   pval_y         q_val  \n",
+       "7073           1.0  1.404265e-24    163.0  9.717861e-23  \n",
+       "3238          -1.0  1.404265e-24    163.0  9.717861e-23  \n",
+       "3209           1.0  1.404265e-24    163.0  9.717861e-23  \n",
+       "12221          1.0  1.404265e-24    163.0  9.717861e-23  \n",
+       "7109           1.0  1.404265e-24    163.0  9.717861e-23  \n",
+       "...            ...           ...      ...           ...  \n",
+       "3557           0.0  1.000000e+00  11280.0  1.000000e+00  \n",
+       "1599           0.0  1.000000e+00  11280.0  1.000000e+00  \n",
+       "5005           0.0  1.000000e+00  11280.0  1.000000e+00  \n",
+       "7318           0.0  1.000000e+00  11280.0  1.000000e+00  \n",
+       "6414           0.0  1.000000e+00  11280.0  1.000000e+00  \n",
+       "\n",
+       "[11280 rows x 6 columns]"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "cecum_unfiltered.get_significant_correlations(correlation='spearman')\n",
+    "cecum_bdfs.get_significant_correlations(correlation='spearman')\n",
+    "cecum_fsfso.get_significant_correlations(correlation='spearman')\n",
+    "cecum_fssdg.get_significant_correlations(correlation='spearman')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Exporting BD...\n",
+      "Exporting FS...\n",
+      "Exporting FSO...\n",
+      "Exporting SDG...\n"
+     ]
+    }
+   ],
+   "source": [
+    "cecum_bdfs.export('../Results/dw20220608-1.xlsx', 'spearman')\n",
+    "cecum_fsfso.export('../Results/dw20220608-2.xlsx', 'spearman')\n",
+    "cecum_fssdg.export('../Results/dw20220608-3.xlsx', 'spearman')\n",
+    "cecum_unfiltered.export('../Results/dw20220608-4.xlsx', 'spearman')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Get correlation ignoring diet"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def kendall_t(microbiome, mirna):\n",
+    "   \n",
+    "    # Convert dataframes to ranks then numpy for use in scipy kendalltau\n",
+    "    microbiome_diet = microbiome.rank(axis=0, method='max').transpose().to_numpy()\n",
+    "    mirna_diet = mirna.rank(axis=0, method='max').transpose().to_numpy()\n",
+    "\n",
+    "    t_value = pd.DataFrame(columns=mirna.columns, index=microbiome.columns)\n",
+    "    p_value = pd.DataFrame(columns=mirna.columns, index=microbiome.columns)\n",
+    "\n",
+    "    for i, taxa in enumerate(microbiome_diet):\n",
+    "        for j, micro in enumerate(mirna_diet):\n",
+    "            t_value.iat[i,j], p_value.iat[i,j] = stats.kendalltau(taxa, micro)\n",
+    "    \n",
+    "    return t_value, p_value\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "t,p = kendall_t(corrected_abundance, cecum.mirna)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def get_significant_correlations(t, p, threshold, correction=True):\n",
+    "\n",
+    "    #Change correlation matrix to table of pairs & correlation values\n",
+    "    corr = t.stack().reset_index()\n",
+    "    corr.columns = ['factor_1', 'factor_2', 'correlation']\n",
+    "    pval = p.stack().reset_index()\n",
+    "    pval.columns = ['factor_1', 'factor_2', 'pval']\n",
+    "    merged = pd.merge(corr, pval, how='inner', on = ['factor_1', 'factor_2'])\n",
+    "\n",
+    "    #FDR - Benjamini-Hochberg Correction\n",
+    "    if correction:\n",
+    "        #Filter on no NaN correlations, NaN pvals, no self-correlation\n",
+    "        merged = merged.loc[(merged['correlation'] != None) & (merged['pval'] != None)\n",
+    "                       & (merged['factor_1'] != merged['factor_2'])]\n",
+    "        #Ensure correlation is between bacteria & miRNA only - no bac bac or mir mir\n",
+    "        merged = merged[merged['factor_1'].str.contains(\"k__\")]\n",
+    "        merged = merged[~merged['factor_2'].str.contains(\"k__\")]\n",
+    "        #Rank p-values for BH correction\n",
+    "        ranked_p = merged.loc[:, 'pval'].rank(method='max').sort_values()\n",
+    "        merged = pd.merge(merged, ranked_p, how='inner', left_index = True, right_index = True).sort_values('pval_x')\n",
+    "\n",
+    "        merged['q_val'] = merged['pval_x'] * merged.shape[0] / ranked_p\n",
+    "        #merged = merged.loc[merged['pval_x'] <= threshold]\n",
+    "\n",
+    "    #Uncorrected correlations, p-value < threshold\n",
+    "    else: \n",
+    "        #Filter for 0 correlation, p-value < threshold, no self-correlation\n",
+    "        merged = merged.loc[(merged['correlation'] != 0) & (merged['pval'] < threshold)\n",
+    "                       & (merged['factor_1'] != merged['factor_2'])]\n",
+    "        merged = merged[merged['factor_1'].str.contains(\"k__\")]\n",
+    "        merged = merged[~merged['factor_2'].str.contains(\"k__\")].sort_values('pval')\n",
+    "        merged = merged.loc[merged['pval_x'] <= threshold]\n",
+    "\n",
+    "    return merged"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "get_significant_correlations(t,p,0.05,correction=True).to_excel(\"copy_corr_sig_corr_alldiets.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Correlation with miRNA gene targets"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Load dataframe & get all mouse gene targets (contains mmu)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# miRDB gene targets (takes a while to load)\n",
+    "gene_targets_all = pd.read_csv(\"../Data/miRDB_v6.0_prediction_result.txt.gz\", \n",
+    "                           delimiter='\\t', \n",
+    "                           names=['mirna_name', 'target', 'score'])\n",
+    "gene_targets_mmu_raw = gene_targets_all.loc[gene_targets_all['mirna_name'].str.contains('mmu')]\n",
+    "# Refer to https://pmc.ncbi.nlm.nih.gov/articles/PMC6943051/ for miRDB data \n",
+    "# Chen Y, Wang X. miRDB: an online database for prediction of functional microRNA targets.\n", 
+    "# Nucleic Acids Res. 2020 Jan 8;48(D1):D127-D131. doi: 10.1093/nar/gkz757.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# miRNA names in experiment\n",
+    "#mirna_names = cecum.mirna.columns.values\n",
+    "# Get list of relevant mirnas\n",
+    "relevant_mirnas = [gt for gt in gene_targets_mmu_raw['mirna_name'] if any((mirna+\"-\") in gt for mirna in mirna_names)]\n",
+    "# Remove mirnas which are duplicated\n",
+    "relevant_mirnas = list(dict.fromkeys(relevant_mirnas))\n",
+    "# Get mirnas in experiment\n",
+    "gene_targets_mmu = gene_targets_mmu_raw.loc[gene_targets_mmu_raw['mirna_name'].isin(relevant_mirnas)]\n",
+    "# Get scores above certain score\n",
+    "gene_targets_mmu = gene_targets_mmu.loc[gene_targets_mmu['score'] > 95]\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get gene targets for all mirnas in experiment"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def get_gene_targets(raw_gene_targets, mirna_names):\n",
+    "    relevant_mirnas = [gt for gt in raw_gene_targets['mirna_name'] if any(mirna in gt for mirna in mirna_names)]\n",
+    "    # Get mirnas in experiment\n",
+    "    raw_gene_targets = raw_gene_targets.loc[raw_gene_targets['mirna_name'].isin(relevant_mirnas)]\n",
+    "    # Get scores above 80\n",
+    "    raw_gene_targets = raw_gene_targets.loc[raw_gene_targets['score'] > 80]\n",
+    "    return raw_gene_targets"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get significant pre-correction miRNAs in RefSeq format"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "corr_k = cecum.sig_cor['kendall']\n",
+    "diet_gene_targets = {}\n",
+    "diet_gene_targets_counts = {}\n",
+    "for diet in corr_k:\n",
+    "    sig_corr_k = corr_k[diet].loc[corr_k[diet]['pval_x'] <=0.05]\n",
+    "    diet_gene_targets[diet] = get_gene_targets(gene_targets_mmu, sig_corr_k['factor_2'])\n",
+    "for diet in diet_gene_targets:\n",
+    "    diet_gene_targets_counts[diet] = diet_gene_targets[diet]['target'].value_counts()\n",
+    "    diet_gene_targets_counts[diet] = diet_gene_targets_counts[diet].loc[diet_gene_targets_counts[diet] > 1].to_frame(name=\"count\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "diet_gene_targets_counts[\"FS\"]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Convert RefSeq to GeneID https://github.com/taoliu/taolib/blob/master/Scripts/convert_gene_ids.py"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "## Using biopython, do not run unless need updates to list\n",
+    "\n",
+    "def retrieve_geneid(refseq_list):\n",
+    "    \"\"\"\n",
+    "    Inputs: refseq_list with RefSeq IDs as index, can be anything after\n",
+    "    Returns a list of Entrez IDs\"\"\"\n",
+    "    Entrez.email = \"dianace.wu@mail.utoronto.ca\"\n",
+    "\n",
+    "    refseq_list['geneid'] = ''\n",
+    "    for refseq in refseq_list.index:\n",
+    "        term = refseq+\"[ACCN]\"\n",
+    "        esearch_result = Entrez.esearch(db=\"gene\",term=term,retmod=\"xml\")\n",
+    "        parsed_result = Entrez.read(esearch_result)\n",
+    "        #print(type(parsed_result['IdList'][0]))\n",
+    "        try:\n",
+    "            refseq_list['geneid'][refseq] = parsed_result['IdList'][0]\n",
+    "        except IndexError:\n",
+    "            refseq_list['geneid'][refseq] = None\n",
+    "            continue\n",
+    "        #print (parsed_result, end=\"\\r\")\n",
+    "    '''\n",
+    "    # Maximum search number is 20\n",
+    "    max_search = int(len(id_list)/20) \n",
+    "    print(\"Len id list: \" + str(len(id_list)) + \" maxsearch: \" + str(max_search))\n",
+    "    geneids = []\n",
+    "    \n",
+    "    for i in range(max_search):\n",
+    "        if i>885:\n",
+    "            print(\"Search no \" + str(i))\n",
+    "        id_list_s = id_list[(i)*20:(20*(i+1))]\n",
+    "        term = \" OR \".join(map(lambda x:x+\"[ACCN]\",id_list_s))\n",
+    "        esearch_result = Entrez.esearch(db=\"gene\",term=term,retmod=\"xml\")\n",
+    "        parsed_result = Entrez.read(esearch_result)\n",
+    "        if len(parsed_result['IdList']) < 20:\n",
+    "            print(\"Length of res is \" + str(len(parsed_result['IdList'])) + \" for iteration \" + str(i))\n",
+    "        geneids.extend(parsed_result['IdList'])\n",
+    "        \n",
+    "    id_list_s = id_list[max_search*20:len(id_list)]\n",
+    "    term = \" OR \".join(map(lambda x:x+\"[ACCN]\",id_list_s))\n",
+    "    esearch_result = Entrez.esearch(db=\"gene\",term=term,retmod=\"xml\")\n",
+    "    parsed_result = Entrez.read(esearch_result)\n",
+    "    geneids.extend(parsed_result['IdList'])\n",
+    "        '''\n",
+    "    return refseq_list"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Local conversion"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "local_geneIDs = pd.read_excel(\"../Data/dw20210606-1.xlsx\", )"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "for diet in diet_gene_targets_counts:\n",
+    "    diet_gene_targets_counts[diet] = diet_gene_targets_counts[diet].reset_index().rename({\"index\": \"refseqid\"}, axis=1).merge(local_geneIDs, how=\"left\", on=\"refseqid\")\n",
+    "                                                                          "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "diet_gene_targets_counts[\"SDG\"][\"geneid\"].to_excel(\"sdg_gene_targets.xlsx\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "diet_geneid = {}\n",
+    "for diet in diet_gene_targets_counts:\n",
+    "    diet_geneid[diet] = [i for i in diet_gene_targets_counts[diet][\"geneid\"].values.tolist() if i is not None]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Online conversion (takes MUCH LONGER)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "for diet in diet_gene_targets_counts:\n",
+    "    # Currently doing for counts > 50 because whole list takes too long\n",
+    "    diet_gene_targets_counts[diet] = retrieve_geneid(diet_gene_targets_counts[diet])\n",
+    "    print(\"Gene IDs retrieved for \" + diet + \"...\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# Need to convert Bio.Entrez.StringElement to a str >=\\\n",
+    "diet_geneid = {}\n",
+    "for diet in diet_gene_targets_counts:\n",
+    "       diet_geneid[diet] = [int(i.__repr__().replace(\"'\", \"\")) for i in diet_gene_targets_counts[diet][\"geneid\"].values.tolist() if i is not None]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# Export gene target geneIDs\n",
+    "with pd.ExcelWriter(\"../Data/dw20210606-1.xlsx\") as writer:\n",
+    "        for diet in diet_gene_targets_counts:\n",
+    "            diet_gene_targets_counts[diet].to_excel(writer, sheet_name=diet)\n",
+    "            print(\"Exporting \" + diet + \"...\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "len(diet_gene_targets_counts[\"SDG\"])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### From GOATOOLS example https://github.com/tanghaibao/goatools/blob/main/notebooks/goea_nbt3102.ipynb"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Download files (ontology data)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "from goatools.base import download_go_basic_obo\n",
+    "obo_fname = download_go_basic_obo()\n",
+    "\n",
+    "from goatools.base import download_ncbi_associations\n",
+    "fin_gene2go = download_ncbi_associations()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "from goatools.obo_parser import GODag\n",
+    "obodag = GODag(\"go-basic.obo\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Read mouse geneIDs to gene ontologies"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "from __future__ import print_function\n",
+    "from goatools.anno.genetogo_reader import Gene2GoReader\n",
+    "\n",
+    "# Read NCBI's gene2go. Store annotations in a list of namedtuples\n",
+    "objanno = Gene2GoReader(\"gene2go\", taxids=[10090])\n",
+    "\n",
+    "# Get namespace2association where:\n",
+    "#    namespace is:\n",
+    "#        BP: biological_process               \n",
+    "#        MF: molecular_function\n",
+    "#        CC: cellular_component\n",
+    "#    assocation is a dict:\n",
+    "#        key: NCBI GeneID\n",
+    "#        value: A set of GO IDs associated with that gene\n",
+    "ns2assoc = objanno.get_ns2assc()\n",
+    "\n",
+    "for nspc, id2gos in ns2assoc.items():\n",
+    "    print(\"{NS} {N:,} annotated mouse genes\".format(NS=nspc, N=len(id2gos)))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### GOEA Analysis for all genes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "GeneID2nt_mus.keys()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "from goatools.test_data.genes_NCBI_10090_ProteinCoding import GENEID2NT as GeneID2nt_mus\n",
+    "from goatools.goea.go_enrichment_ns import GOEnrichmentStudyNS"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "goeaobj = GOEnrichmentStudyNS(\n",
+    "        diet_gene_targets_counts[\"BD\"][\"geneid\"], # List of mouse protein-coding genes\n",
+    "        ns2assoc, # geneid/GO associations\n",
+    "        obodag, # Ontologies\n",
+    "        propagate_counts = False,\n",
+    "        alpha = 0.05, # default significance cut-off\n",
+    "        methods = ['fdr_bh']) # defult multipletest correction method"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "goea_results = {}\n",
+    "for diet in diet_geneid:\n",
+    "    goea_results[diet] = goeaobj.run_study(diet_geneid[diet], prt=None)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "goea_res_sig = {}\n",
+    "for diet in diet_geneid:\n",
+    "    goea_res_sig[diet] = [r for r in goea_results[diet] if r.p_fdr_bh < 0.05]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "for i,diet in enumerate(goea_res_sig):\n",
+    "    goeaobj.wr_xlsx(\"../Results/correlations/dw20210721-\" + str(i+1) + \".xlsx\", goea_res_sig[diet])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for diet in goea_res_sig:\n",
+    "    print(diet)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## MiRNA gene targets for differential correlation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Visualize data\n",
+    "https://medium.com/@houssamAkk/visualise-relationships-with-the-use-of-networks-4db79f94ee0e"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Data cleaning"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Filter data for p<0.05"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def get_sig_cor(correlations):\n",
+    "    # Pass in cecum.significant_correlations['kendall']\n",
+    "    sig = {}\n",
+    "    for diet in correlations:\n",
+    "        cor_diet = correlations[diet]\n",
+    "        sig[diet] = cor_diet.loc[cor_diet['pval_x'] < 0.05]\n",
+    "    return sig\n",
+    "            \n",
+    "sig_cecum = get_sig_cor(cecum.sig_cor['kendall'])\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Get shorter name for visibility"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def get_short_name(names):\n",
+    "    split = names.split(\"|\")\n",
+    "    if split[5] != \"g__\":\n",
+    "        return split[5]\n",
+    "    elif split[4] != (\"f__\" or \"f__Other\"):\n",
+    "        return split[4]\n",
+    "    elif split[3] != (\"o__\" or \"o__Other\"):\n",
+    "        return split[3]\n",
+    "    elif split[2] != (\"c__\" or \"c__Other\"):\n",
+    "        return split[2]\n",
+    "    elif split[1] != (\"p__\" or \"p__Other\"):\n",
+    "        return split[1]\n",
+    "    else:\n",
+    "        return split[0]\n",
+    "    return None\n",
+    "\n",
+    "'''for diet in sig_cecum:\n",
+    "    sig_cecum[diet]['microbiome'] = sig_cecum[diet]['factor_1'].apply(get_short_name)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# Export gene target geneIDs\n",
+    "with pd.ExcelWriter(\"../Data/dw20210705-1.xlsx\") as writer:\n",
+    "        for diet in sig_cecum:\n",
+    "            sig_cecum[diet].to_excel(writer, sheet_name=diet)\n",
+    "            print(\"Exporting \" + diet + \"...\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Remove duplicated microbiome name\n",
+    "- Problem: genus is the same but family is different but results in duplicated microbiome-mirna pair. Pandas will not allow me to pivot with these duplications"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sig_cecum['BD']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum_duplicated = {}\n",
+    "\n",
+    "# Get duplicated name\n",
+    "for diet in sig_cecum:\n",
+    "    cecum_duplicated[diet] = sig_cecum[diet].duplicated(subset=['microbiome','factor_2'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sig_cecum['BD']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "def rename_duplicate(names):\n",
+    "    split = names.split(\"|\")\n",
+    "    symb = \"|\"\n",
+    "    if split[5] != \"g__\":\n",
+    "        return symb.join(split[4:6])\n",
+    "    elif split[4] != \"f__\" or \"f__Other\":\n",
+    "        return symb.join(split[3:5])\n",
+    "    elif split[3] != \"o__\" or \"o__Other\":\n",
+    "        return symb.join(split[2:4])\n",
+    "    elif split[2] != \"c__\" or \"c__Other\":\n",
+    "        return symb.join(split[1:3])\n",
+    "    elif split[1] != \"p__\" or \"p__Other\":\n",
+    "        return symb.join(split[0:2])\n",
+    "    else:\n",
+    "        return split[0]\n",
+    "    \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Remove duplicated names\n",
+    "for diet in sig_cecum:\n",
+    "    sig_cecum[diet].loc[cecum_duplicated[diet],['microbiome']] = sig_cecum[diet].loc[cecum_duplicated[diet]]['factor_1'].apply(rename_duplicate)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "sig_cecum_pivot = {}\n",
+    "for diet in sig_cecum:\n",
+    "    sig_cecum_pivot[diet] = \\\n",
+    "            sig_cecum[diet][['microbiome','factor_2','correlation']].pivot(index='microbiome',columns='factor_2').fillna(0)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Visualize correlations in heatmap"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "sig_cecum_pivot['BD'].shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "with pd.ExcelWriter('../Results/correlations/dw20210823-1.xlsx') as writer:\n",
+    "    for diet in sig_cecum_pivot:\n",
+    "        sig_cecum_pivot[diet].to_excel(writer, sheet_name=diet)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, axs = plt.subplots(1,1, figsize = (20,16))\n",
+    "title = \"Cecum qPCR correlations - SDG\"\n",
+    "axs.set_title(title)\n",
+    "axs = sb.heatmap(sig_cecum_pivot[\"SDG\"], ax=axs)\n",
+    "axs.set_aspect('auto')\n",
+    "axs.set_xlabel('MiRNA', fontsize=20)\n",
+    "axs.set_ylabel('Microbiome', fontsize=20)\n",
+    "sb.set(font_scale=1.5)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [],
+   "source": [
+    "fig, axs = plt.subplots(2,2, figsize = (16,14))\n",
+    "for i,diet in enumerate(sig_cecum_pivot):\n",
+    "    title = \"Cecum qPCR correlations - \" + diet\n",
+    "    axs[i//2, i%2].set_title(title)\n",
+    "    ax = sb.heatmap(sig_cecum_pivot[diet], ax=axs[i//2,i%2])\n",
+    "    axs[i//2,i%2].set_aspect('auto')\n",
+    "    axs[i//2,i%2].set_xlabel('MiRNA')\n",
+    "    axs[i//2,i%2].set_ylabel('Microbiome')\n",
+    "    \n",
+    "fig.tight_layout()\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Visualize p-values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cecum.correlations['kendall']['BD']['pval'].nunique()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "n,bins,patches = plt.hist(x=cecum.correlations['kendall']['BD']['pval'], bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)\n",
+    "plt.grid(axis='y', alpha=0.75)\n",
+    "plt.xlabel('Value')\n",
+    "plt.ylabel('Frequency')\n",
+    "plt.title('My Very Own Histogram')\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "corr = cecum.correlations['spearman']['BD']['val']\n",
+    "sig_pivot = sig[['factor_1', 'factor_2', 'correlation']].pivot(index = 'factor_1',\n",
+    "                                                                   columns = 'factor_2')\n",
+    "fig, ax = plt.subplots(figsize=(10,10))\n",
+    "ax = sb.heatmap(\n",
+    "    sig_pivot, \n",
+    "    vmin=-1, vmax=1, center=0,\n",
+    "    cmap=sb.diverging_palette(20, 220, n=200),\n",
+    "    square=False\n",
+    ")\n",
+    "ax.set_xticklabels(\n",
+    "    sig['factor_2'],\n",
+    "    rotation=45,\n",
+    "    horizontalalignment='right'\n",
+    ");\n",
+    "ax.set_yticklabels(sig['factor_1'].str.split('|').str[-1])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "corr = sig[['factor_1', 'factor_2', 'correlation']]\n",
+    "array = np.array(corr.pivot(\n",
+    "    index = 'factor_1', columns = 'factor_2'))\n",
+    "matrix = np.matrix(array, copy=False, dtype=None)\n",
+    "indices = corr.index.values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "G = nx.from_pandas_edgelist(sig,source='factor_1', target='factor_2', edge_attr='correlation')\n",
+    "nx.draw_circular(G, with_labels=True, font_size=5)\n",
+    "#nx.draw_networkx_labels(G, nx.circular_layout(G), font_size=8, font_family='sans-serif')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# qPCR compared to relative abundance"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "rel_abu = cecum.microbiome['k__Bacteria|p__Verrucomicrobia|c__Verrucomicrobiae|o__Verrucomicrobiales|f__Verrucomicrobiaceae|g__Akkermansia'].values\n",
+    "abs_num = cecum.microbiome['k__Bacteria|p__Verrucomicrobia|c__Verrucomicrobiae|o__Verrucomicrobiales|f__Verrucomicrobiaceae|g__Akkermansia'].index.get_level_values(\"Absolute number\").values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.plot(abs_num, rel_abu, 'o')\n",
+    "matplotlib.pyplot.xscale(\"log\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.linear_model import LinearRegression"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model = LinearRegression().fit(abs_num.reshape(-1,1), rel_abu)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "rel_abu"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "input(\"What do you want\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "celltoolbar": "Raw Cell Format",
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.7"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": true,
+   "toc_position": {
+    "height": "calc(100% - 180px)",
+    "left": "10px",
+    "top": "150px",
+    "width": "207.969px"
+   },
+   "toc_section_display": true,
+   "toc_window_display": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
